@@ -15,4 +15,3 @@ This application is intended strictly for **educational purposes**. It is a tech
 - This software is provided without any warranty and is **not meant for commercial use**.
 
 By using or modifying this code, you agree to respect all applicable laws regarding copyright and digital content distribution.
-"""
