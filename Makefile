@@ -32,6 +32,12 @@ fclean: stop clean
 	@docker rmi -f my_app postgres:17 dpage/pgadmin4 busybox || true
 	@echo "${GREEN}Images deleted.${RESET}"
 
+fclean2: stop clean
+	@echo "${YELLOW}Removing containers, images, and volumes from docker-compose...${RESET}"
+	@docker compose down --volumes --rmi all || echo "${RED}Could not fully clean with docker compose down${RESET}"
+	@docker rmi -f busybox || echo "${CYAN}busybox image not found or already removed.${RESET}"
+	@echo "${GREEN}All docker-compose resources have been removed.${RESET}"
+
 stop:
 	@docker compose stop
 
@@ -90,11 +96,5 @@ clean:
 	@echo "${MAGENTA}Final check with Busybox to clean bind mounted volume...${RESET}"
 	@docker run --rm -v $(DB_VOLUME):/data busybox sh -c "rm -rf /data/*" || echo "${RED}Failure using Busybox${RESET}"
 	@echo "${GREEN}Complete cleaning finished.${RESET}"
-
-fclean: stop clean
-	@echo "${YELLOW}Removing containers, images, and volumes from docker-compose...${RESET}"
-	@docker compose down --volumes --rmi all || echo "${RED}Could not fully clean with docker compose down${RESET}"
-	@docker rmi -f busybox || echo "${CYAN}busybox image not found or already removed.${RESET}"
-	@echo "${GREEN}All docker-compose resources have been removed.${RESET}"
 
 re: clean fclean all
