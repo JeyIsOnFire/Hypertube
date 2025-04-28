@@ -1,3 +1,4 @@
+import logging
 class torrent():
     def __init__(self, filename):
         self.filename = filename
@@ -17,6 +18,9 @@ class torrent():
         self.decode_file()
         self.peer_id = self.generate_peer_id()
         self.peers = []
+        self.peers_connected = []
+        self.log("Torrent file loaded successfully, starting process...")
+        self.start_process()
     
     def __str__(self):
         informations = []
@@ -57,12 +61,22 @@ class torrent():
             informations.append(f"Peers: {self.peers}")
         else:
             informations.append("Peers: No peers known, please check the tracker")
+        if self.peers_connected:
+            informations.append(f"Connected Peers: {self.peers_connected}")
+        else:
+            informations.append("Connected Peers: No peers connected")
         if self.info_hash:
             informations.append(f"Info Hash: {self.info_hash.hex()}")
         else:
             informations.append("Info Hash: No info hash found")
         return "\n".join(informations)
+
+    def __repr__(self):
+        return self.__str__()
     
+    def __del__(self):
+        return self.stop_torrent()
+
     def decode_file(self):
         import bencodepy
         import hashlib
@@ -134,9 +148,9 @@ class torrent():
                         # Traiter la réponse
                         data = response.content
                         peers = self.parse_peers(data)
+                        self.log(f"Peers found: {peers} on {url}")
                         if peers:
                             self.peers.extend(peers)
-                            print(f"Found {len(peers)} peers from {url}")
                     else:
                         print(f"Failed to contact tracker: {url} - Status code: {response.status_code}")
                 except requests.RequestException as e:
@@ -188,6 +202,89 @@ class torrent():
             return parsed_peers
         return []
 
+    def connect_peer(self, peer: tuple):
+        """
+        Connect to a single peer using the socket module.
+        """
+        import socket
+        if not isinstance(peer, tuple):
+            raise TypeError("Peer must be a tuple")
+        if len(peer) != 2:
+            raise ValueError("Peer must be a tuple of (ip, port)")
+        if not isinstance(peer[0], str):
+            raise TypeError("IP must be a string")
+        if not isinstance(peer[1], int):
+            raise TypeError("Port must be an integer")
+        if not (0 <= peer[1] <= 65535):
+            raise ValueError("Port must be between 0 and 65535")
+        ip, port = peer
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)  # Timeout de 5 secondes
+            sock.connect((ip, port))
+            peer_save = (ip, port, sock)
+            self.peers_connected.append(peer_save)
+            self.log(f"Connected to peer {ip}:{port}")
+        except socket.error as e:
+            self.log(f"Error connecting to peer {ip}:{port} - {e}")
+
+    def connect_peers(self):
+        """
+        Connect to peers using the socket module and using the multithreaded module.
+        """
+        import socket
+        import threading
+        if not self.peers:
+            raise ValueError("No peers found")
+        
+        threads = []
+        for peer in self.peers:
+            thread = threading.Thread(target=self.connect_peer, args=(peer,))
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+    def stop_torrent(self):
+        self.log("Stopping torrent...")
+        self.close_tracker()
+        self.log("Tracker closed")
+        while self.peers_connected:
+            peer = self.peers_connected.pop()
+            ip, port, sock = peer
+            try:
+                sock.close()
+                self.log(f"Disconnected from peer {ip}:{port}")
+            except Exception as e:
+                print(f"Error disconnecting from peer {ip}:{port} - {e}")
+
+        self.peers_connected = []
+        self.peers = []
+        self.log("Torrent stopped")
+
+    def start_process(self):
+        self.log("Starting process...")
+        self.log("Contacting trackers...")
+        self.contact_trackers()
+        self.log("Trackers contacted, waiting for peers...")
+        if not self.peers:
+            raise ValueError("No peers found")
+        self.connect_peers()
+        self.log("Connected to peers")
+        if not self.peers_connected:
+            raise ValueError("No peers connected")
+        self.log("Process started successfully")
+
+    def log(self, message: str = ""):
+        if not message:
+            raise ValueError("Message cannot be empty")
+        if not isinstance(message, str):
+            raise TypeError("Message must be a string")
+        if not self.name:
+            raise ValueError("Torrent name is not set")
+        print(f"TORRENT_LOG: {self.name} - {message}")
+
 
 def main():
     try:
@@ -196,12 +293,13 @@ def main():
         torrent_dir = os.path.join(base_dir, 'torrents')
         if not os.path.exists(torrent_dir):
             os.makedirs(torrent_dir)
-        torrent_file = os.path.join(torrent_dir, 'Revolt_of_the_Zombies.avi.torrent')
-        torrent_file = torrent(torrent_file)
-        torrent_file.contact_trackers()
-        torrent_file.close_tracker()
-        print("Torrent file information:")
-        print(torrent_file)
+        torrent_file = os.path.join(torrent_dir, 'Child_Bride.avi.torrent')
+        try:
+            torrent_file = torrent(torrent_file)
+            del torrent_file
+        except Exception as e:
+            print(f"Error: {e}")
+            print("Please check the torrent file and try again.")
     except Exception as e:
         print(f"Error: {e}")
         print("Please check the torrent file and try again.")
