@@ -3,7 +3,9 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { fetchApi } from './fetch-api';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+
 
 interface Poster {
   tconst: string;
@@ -15,6 +17,9 @@ const Home = () => {
   const router = useRouter();
   const [posters, setPosters] = useState<Poster[] | null>(null);
 
+  const params = useParams();
+  const lang = params.lang;
+  console.log('langue: ', lang);
   useEffect(() => {
     fetchApi("randomPoster")
       .then((response: Poster[]) => {
@@ -31,9 +36,11 @@ const Home = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <h1 className="text-4xl font-bold mb-4">Random Posters</h1>
-	  <div className="bg-red-600 pointer p-1 mb-3 " onClick={goToLanding}>
-		Idee de design: &gt;&gt;&gt;&gt;<button className="cursor-pointer">CLIQUEZ ICI</button>&lt;&lt;&lt;&lt;&lt;
-	  </div>
+
+	  <Link href="landing" className="bg-red-600 pointer p-1 mb-3">
+	    Idee de design:
+	    <button className="cursor-pointer">CLIQUEZ ICI</button>
+	  </Link>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {posters ? (
           posters.map((poster, index) => (

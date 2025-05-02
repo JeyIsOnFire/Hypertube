@@ -1,5 +1,6 @@
 backend/hypertube/imdb_data/data/
 frontend/.next/
+sauvegarde.dump
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
