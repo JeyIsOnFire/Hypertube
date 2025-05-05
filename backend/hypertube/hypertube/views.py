@@ -1,12 +1,14 @@
 import pandas as pd
 import requests
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.utils.translation import get_language
+from django.db import connection
 
 def hello_backend(request):
     print(request)
     return JsonResponse({"message":"Le Backend"})
 
-def displayRandomPoster(request):
+def display_random_poster(request, lang_code = 'en'):
     # Charger les 1000 premières lignes du fichier TSV
     df = pd.read_csv(
         'imdb_data/data/title.basics.tsv.gz',
@@ -42,3 +44,14 @@ def displayRandomPoster(request):
 
     # Retourner la réponse JSON
     return JsonResponse(posters, safe=False)
+
+
+def display_query(request, lang_code = get_language()):
+    query = request.GET.get('query', '')
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM titles WHERE primary_title LIKE %s;", [f"%{query}%"])
+        result = cursor.fetchall();
+    
+    return JsonResponse({'received_query': result})
+

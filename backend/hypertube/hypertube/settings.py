@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from django.utils.translation import gettext_lazy as _
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,6 +51,10 @@ INSTALLED_APPS = [
     'hypertube',
     'corsheaders',
 ]
+LANGUAGES = [
+    ('en', _('English')),
+    ('fr', _('French')),
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -59,18 +65,20 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 # à modifier pour limiter l'accès
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4000',
+    'http://localhost:5000',
     'http://localhost',
 ]
 
 CORS_ALLOW_HEADERS = [
     "content-type",
     "accept",
-    "authhorization",
+    "authorization",
     "x-csrftoken",
 ]
 
