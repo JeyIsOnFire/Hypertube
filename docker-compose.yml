@@ -29,7 +29,8 @@ services:
     networks:
       - hypertube-net
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   nginx:
     container_name: server
@@ -62,6 +63,12 @@ services:
       POSTGRES_DB: hypertube
     networks:
       - hypertube-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d db"]
+      interval: 15s
+      timeout: 30s
+      retries: 5
+      start_period: 15s
 
   pgadmin:
     container_name: pgadmin
@@ -83,6 +90,7 @@ services:
       - "6380:6379"
     networks:
       - hypertube-net
+
 
   # streamer:
   #   container_name: stream

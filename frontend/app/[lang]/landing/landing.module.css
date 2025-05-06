@@ -1,25 +1,3 @@
-:root {
-  /* couleurs */
-  --mint: #58c3a3;
-  --beige: #e6c8a1;
-  --dark: #2b2926;
-  --mint-2: #50a47f;
-  --orange: #f27f33;
-  /* typo */
-  --ff-logo: "Monoton", cursive;
-  --ff-heading: "Oswald", sans-serif;
-  --ff-body: "Source Sans Pro", sans-serif;
-  padding: 10px;
-}
-
-body {
-  font-family: var(--ff-body);
-  background: var(--beige);
-  color: var(--dark);
-  line-height: 1.5;
-  border-radius: 10px;
-  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.92);
-}
 
 .header {
   background: var(--dark);
@@ -172,3 +150,57 @@ body {
   margin-right: 10px;
   fill: var(--dark);
 }
+
+/* ------------------------- SEARCH BAR ----------------------- */
+
+.results {
+  position: absolute;
+  background: var(--dark);
+  padding: 0.2em;
+  animation: contentFade 0.3s ease-in;
+  max-width: 80%;
+  width: 100%;
+}
+
+.filmList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.filmCard {
+  background: var(--mint);
+  padding: 1rem;
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease;
+  font-family: var(--ff-heading);
+}
+
+.filmCard:hover {
+  background: var(--beige);
+}
+
+
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes contentFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+

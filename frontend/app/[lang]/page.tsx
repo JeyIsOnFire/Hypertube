@@ -26,9 +26,6 @@ const Home = () => {
       .catch((error: Error) => console.error("API Error:", error));
   }, []);
 
-  const goToLanding = () => {
-	router.push('landing');
-  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
@@ -39,7 +36,7 @@ const Home = () => {
 	    <button className="cursor-pointer">CLIQUEZ ICI</button>
 	  </Link>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {posters.lenght > 0 ? (
+        {posters.length > 0 ? (
           posters.map((poster, index) => (
             <div key={poster.tconst || index} className="bg-gray-200 p-4 rounded-lg shadow-md">
               <img src={poster.poster_url} alt={poster.title} className="rounded-lg" />

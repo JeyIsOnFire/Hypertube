@@ -8,4 +8,5 @@ export const messages = {
   'enterhypertube': 'Entrer dans  l\'Hypertube',
   'rightsreserved': '© 2025 HyperTube.Stream – Tous droits réservés',
   'search': 'Entrez le nom d\'un film',
+  'noresults': 'Aucun resultat trouvé',
 }

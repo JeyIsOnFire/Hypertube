@@ -8,5 +8,6 @@ urlpatterns = [
     re_path(r'^(?P<lang_code>en|fr)/hello/', views.hello_backend),
     re_path(r'^(?P<lang_code>en|fr)/randomPoster/', views.display_random_poster),
     re_path(r'^(?P<lang_code>en|fr)/displayQuery/', views.display_query),
+    re_path(r'^(?P<lang_code>en|fr)/fetchMovieData/', views.fetch_movie_data),
 ]
 

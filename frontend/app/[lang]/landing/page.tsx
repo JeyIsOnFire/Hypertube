@@ -2,6 +2,7 @@
 
 import React, { use, useState, useEffect } from 'react';
 import styles from './landing.module.css';
+import Link from 'next/link';
 import { messages as fr } from '../locales/fr.ts';
 import { messages as en } from '../locales/en.ts';
 import LanguageSwitcher from '../components/language-switcher';	
@@ -39,8 +40,9 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
     const debounce = setTimeout(() => {
       const fetchData = async () => {
         try {
-          const response = await fetchApi(`displayQuery?query=${encodeURIComponent(query.target.value)}`);
-          setReponse(JSON.stringify(response));
+          // const res = await fetchApi(`displayQuery?query=${encodeURIComponent(query.target.value)}`);
+          const res = await fetchApi(`fetchMovieData?query=${encodeURIComponent(query.target.value)}`);
+          setReponse(JSON.stringify(res));
         } catch (err) {
           console.error("Erreur API :", err);
         }
@@ -52,12 +54,13 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
   }, [query]);
 
 
+
   return (
     <>
     <header className={styles.header}>
       <LanguageSwitcher />
         <div className={styles.top}>
-          <h1>HYPERTUBE.CO.NZ.FROUTE</h1>
+          <h1>HYPERTUBE.LAJA</h1>
         </div>
 
         <nav className={styles.nav}>
@@ -86,10 +89,45 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
         <input onChange={(e) => setQuery(e)} className={styles.searchInput} type="text" placeholder={t.search} />
       </div>
 
+      {/*----------------------------- SEARCH BAR -----------------------------*/}
+      {response && (() => {
+        const parsed = JSON.parse(response)['results'];
+        console.log("JSON", parsed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return (
+            <div className={styles.results}>
+              <div className={styles.filmList}>
+                {parsed.slice(0, 10).map((film: any, index: number) => (
+                  <Link
+                    key={index}
+                    href={`/films/${film['id']}`} // film[0] = ID IMDb
+                    className={styles.filmCard}
+                  >
+                    <h3>{film['title']}</h3>
+                    <p>{film['release_date']}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <div className={styles.results}>
+              <div className={styles.filmList}>
+                <div className={`${styles.filmCard}`}>{t.noresults}</div>;
+              </div>
+            </div>
+          )
+        }
+      })()}
+
+
+
+
+
       <section className={styles.hero}>
         <h2>{t.searchformovies}</h2>
         <button>{t.enterhypertube}</button>
-        <div>RETOUR BACKEND: {response}</div>
       </section>
 
 	  <section className={styles.grid}>
