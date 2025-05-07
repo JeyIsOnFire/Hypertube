@@ -3,8 +3,7 @@
 import React, { use, useState, useEffect } from 'react';
 import styles from './landing.module.css';
 import Link from 'next/link';
-import LanguageSwitcher from '../components/language-switcher';	
-import { fetchApi } from '../components/fetch-api.tsx';
+import { fetchApi } from '@/lib/fetch-api';
 import translations from '@/locales';
 
 

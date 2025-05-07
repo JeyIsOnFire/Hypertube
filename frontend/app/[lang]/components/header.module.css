@@ -66,6 +66,7 @@
   padding-left: 10px;
   width: 100%;
   outline: none;
+  animation: slideDown 0.3s ease-in;
 }
 
 
@@ -111,7 +112,6 @@
 
 
 
-/* Animations */
 @keyframes slideDown {
   from {
     transform: translateY(-100%);
@@ -130,3 +130,7 @@
   }
 }
 
+.burger {
+  display: flex;
+  justify-content: right;
+}
