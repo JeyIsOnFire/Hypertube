@@ -18,47 +18,27 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [query, setQuery] = useState<string>("");
   const [response, setReponse] = useState(null); 
+  const [popularFilms, setPopularFilms] = useState([]);
 
   const films = [
-    { title: 'Film 1', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 2', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 3', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 4', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 4', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 4', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 4', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 5', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 6', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 7', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 8', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 5', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 6', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 7', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 4', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 4', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 4', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 5', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 6', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 7', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 8', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 5', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 6', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 7', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 8', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 5', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 6', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 7', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 8', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 8', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 5', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 6', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
-    { title: 'Film 7', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
     { title: 'Film 8', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
     { title: 'Film 5', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
     { title: 'Film 6', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
     { title: 'Film 7', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
     { title: 'Film 8', imageUrl: 'https://m.media-amazon.com/images/M/MV5BMjZjNDNlYjctNjhhNy00ZDNhLWJiZDUtNjVmZDAxZjM1ZjA0XkEyXkFqcGc@._V1_SX300.jpg' },
   ];
+
+  useEffect(() => {
+    const fetchPopularMovies = async () => {
+      try {
+        const res = await fetchApi(`fetchPopularMovies`);
+        setPopularFilms(res);
+      } catch (err) {
+        console.error("Erreur API: ", err);
+      }
+    };
+    fetchPopularMovies();
+  }, []);
 
   const toggleSearch = () => {
     isSearching ? setIsSearching(false) : setIsSearching(true);
@@ -153,23 +133,27 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
         }
       })()}
 
-
-
-
-
       <section className={styles.hero}>
         <h2>{t.searchformovies}</h2>
         <button>{t.enterhypertube}</button>
       </section>
 
 	  <section className={styles.grid}>
-		{films.map((film, index) => (
-		  <div key={index} className={styles.card}>
-			<img src={film.imageUrl} alt={film.title} />
-			  <div className={styles.info}>{film.title}</div>
-		  </div>
-		))}
+      {popularFilms.results?.map((film) => (
+        <div key={film.id} className={styles.card}>
+          <img src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} />
+          <div className={styles.info}>
+            <h3>{film.title}</h3>
+            <p>{film.release_date.slice(0, 4)}</p>
+          </div>
+        </div>
+      ))}
 	  </section>
+
+
+    {popularFilms && (
+      <div>{JSON.stringify(popularFilms)}</div>
+    )}
 
 	  <footer className={styles.footer}>{t.rightsreserved}</footer>
     </>
