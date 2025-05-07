@@ -1,4 +1,63 @@
-import logging
+class peer():
+    def __init__(self, ip, port, torrent):
+        self.ip = ip
+        self.port = port
+        self.socket = None
+        self.connected = False
+        self.handshake_done = False
+        self.torrent = torrent
+    
+    def __str__(self):
+        return f"Peer {self.ip}:{self.port} - Connected: {self.connected} - Handshake: {self.handshake_done}"
+    
+    def __repr__(self):
+        return self.__str__()
+
+    def __del__(self):
+        self.disconnect()
+
+    async def connect(self):
+        import socket
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(5)
+            self.socket.connect((self.ip, self.port))
+            self.connected = True
+            print(f"Connected to peer {self.ip}:{self.port}")
+            # self.handshake()
+        except Exception as e:
+            print(f"Error connecting to peer {self.ip}:{self.port} - {e}")
+
+    def disconnect(self):
+        if self.socket:
+            self.socket.close()
+            self.connected = False
+            self.handshake_done = False
+            self.socket = None
+            print(f"Disconnected from peer {self.ip}:{self.port}")
+    
+    def handshake(self):
+        import hashlib
+        import bencodepy
+        if not self.connected:
+            raise ValueError("Peer is not connected")
+        if self.handshake_done:
+            raise ValueError("Handshake already done")
+        pstrlen = 19
+        pstr = b'BitTorrent protocol'
+        reserved = b'\x00' * 8
+        info_hash = self.torrent.info_hash
+        peer_id = self.peer_id.encode('utf-8')
+        handshake = b'\x13' + pstr + reserved + info_hash + peer_id
+        self.socket.send(handshake)
+        response = self.socket.recv(68)
+        if response[0] == 19 and response[1:20] == pstr and response[28:48] == info_hash:
+            self.handshake_done = True
+            print(f"Handshake successful with peer {self.ip}:{self.port}")
+            self.handshake_done = True
+        else:
+            print(f"Handshake failed with peer {self.ip}:{self.port}")
+
 class torrent():
     def __init__(self, filename):
         self.filename = filename
@@ -116,11 +175,11 @@ class torrent():
     def generate_peer_id(self, prefix='-PC0001-'):
         import random
         import string
-        peer_id = prefix
-        if len(peer_id) != 8:
+        peer_id_str = prefix
+        if len(peer_id_str) != 8:
             raise ValueError("Peer ID must be 8 characters long")
-        peer_id += ''.join(random.choices(string.ascii_letters + string.digits, k=12))
-        return peer_id
+        peer_id_str += ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+        return peer_id_str.encode('utf-8')
     
     def contact_trackers(self):
         import bencodepy
@@ -202,29 +261,26 @@ class torrent():
             return parsed_peers
         return []
 
-    def connect_peer(self, peer: tuple):
+    async def connect_peer(self, peer_detail: tuple):
         """
         Connect to a single peer using the socket module.
         """
         import socket
-        if not isinstance(peer, tuple):
+        if not isinstance(peer_detail, tuple):
             raise TypeError("Peer must be a tuple")
-        if len(peer) != 2:
+        if len(peer_detail) != 2:
             raise ValueError("Peer must be a tuple of (ip, port)")
-        if not isinstance(peer[0], str):
+        if not isinstance(peer_detail[0], str):
             raise TypeError("IP must be a string")
-        if not isinstance(peer[1], int):
+        if not isinstance(peer_detail[1], int):
             raise TypeError("Port must be an integer")
-        if not (0 <= peer[1] <= 65535):
+        if not (0 <= peer_detail[1] <= 65535):
             raise ValueError("Port must be between 0 and 65535")
-        ip, port = peer
+        ip, port = peer_detail
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(5)  # Timeout de 5 secondes
-            sock.connect((ip, port))
-            peer_save = (ip, port, sock)
-            self.peers_connected.append(peer_save)
-            self.log(f"Connected to peer {ip}:{port}")
+            peer_conn = peer(ip, port, self)
+            await peer_conn.connect()
+            self.peers_connected.append(peer_conn)
         except socket.error as e:
             self.log(f"Error connecting to peer {ip}:{port} - {e}")
 
@@ -251,29 +307,36 @@ class torrent():
         self.close_tracker()
         self.log("Tracker closed")
         while self.peers_connected:
-            peer = self.peers_connected.pop()
-            ip, port, sock = peer
-            try:
-                sock.close()
-                self.log(f"Disconnected from peer {ip}:{port}")
-            except Exception as e:
-                print(f"Error disconnecting from peer {ip}:{port} - {e}")
-
+            peer_info = self.peers_connected.pop()
+            del peer_info
+            self.log(f"Peer {peer_info} disconnected")
         self.peers_connected = []
         self.peers = []
         self.log("Torrent stopped")
 
     def start_process(self):
+        import time
         self.log("Starting process...")
         self.log("Contacting trackers...")
-        self.contact_trackers()
-        self.log("Trackers contacted, waiting for peers...")
-        if not self.peers:
-            raise ValueError("No peers found")
-        self.connect_peers()
-        self.log("Connected to peers")
-        if not self.peers_connected:
+        while len(self.peers) == 0:
+            self.contact_trackers()
+            self.log("Trackers contacted, waiting for peers...")
+            if len(self.peers) > 0:
+                break
+            else:
+                self.log("No peers found, retrying...")
+                time.sleep(5)
+        while len(self.peers_connected) == 0:
+            self.connect_peers()
+            self.log("Connecting to peers...")
+            if len(self.peers_connected) > 0:
+                break
+            else:
+                self.log("No peers connected, retrying...")
+                time.sleep(5)
+        if len(self.peers_connected) == 0:
             raise ValueError("No peers connected")
+        self.start_download()
         self.log("Process started successfully")
 
     def log(self, message: str = ""):
@@ -284,6 +347,20 @@ class torrent():
         if not self.name:
             raise ValueError("Torrent name is not set")
         print(f"TORRENT_LOG: {self.name} - {message}")
+    
+    def start_download(self):
+        import time
+        self.log("Starting download...")
+        # for peer in self.peers_connected:
+        #     ip, port, sock = peer
+        #     try:
+        #         # Simulate download process
+        #         self.log(f"Downloading from {ip}:{port}...")
+        #         time.sleep(1)  # Simulate download time
+        #         self.log(f"Download complete from {ip}:{port}")
+        #     except Exception as e:
+        #         print(f"Error during download from {ip}:{port} - {e}")
+        # self.log("Download completed successfully")
 
 
 def main():
