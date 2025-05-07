@@ -7,5 +7,6 @@ from . import views
 urlpatterns = [
     re_path(r'^(?P<lang_code>en|fr)/fetchMovieData/', views.fetch_movie_data),
     re_path(r'^(?P<lang_code>en|fr)/fetchPopularMovies/', views.fetch_popular_movies),
+    re_path(r'^(?P<lang_code>en|fr)/getMovieInfosById/(?P<id>\d+)/$', views.get_movie_infos_by_id),
 ]
 

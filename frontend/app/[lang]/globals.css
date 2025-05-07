@@ -25,3 +25,12 @@ body {
   box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.92);
 }
 
+footer {
+  background: var(--dark);
+  color: var(--beige);
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.8rem;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}

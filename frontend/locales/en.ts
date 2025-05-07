@@ -1,4 +1,4 @@
-export const messages = {
+const en = {
   'home': 'home',
   'movies': 'Movies',
   'shows': 'TV-Shows',
@@ -10,3 +10,5 @@ export const messages = {
   'search': 'Enter the name of a movie',
   'noresults': 'No results found',
 }
+
+export default en;

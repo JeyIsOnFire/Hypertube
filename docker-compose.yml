@@ -32,22 +32,22 @@ services:
       db:
         condition: service_healthy
 
-  backend-user:
-    container_name: backend-user
-    build:
-      context: .
-      dockerfile: ./auth/Dockerfile
-    ports:
-      - "6000:6000"
-    env_file:
-      - .env
-    volumes:
-      - ./backend/hypertube:/app
-    networks:
-      - hypertube-net
-    depends_on:
-      db:
-        condition: service_healthy
+  # backend-user:
+  #   container_name: backend-user
+  #   build:
+  #     context: .
+  #     dockerfile: ./auth/Dockerfile
+  #   ports:
+  #     - "6000:6000"
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./backend/hypertube:/app
+  #   networks:
+  #     - hypertube-net
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
 
   # backend-api:
   #   container_name: backend-api
@@ -108,7 +108,7 @@ services:
     container_name: pgadmin
     image: dpage/pgadmin4:latest
     ports:
-      - "5050:80"
+      - "5051:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
       PGADMIN_DEFAULT_PASSWORD: "admin"

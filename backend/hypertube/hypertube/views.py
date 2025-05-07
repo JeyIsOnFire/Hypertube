@@ -19,6 +19,7 @@ def omdb_auth():
         return JsonResponse({'error': 'Authentication failed'}, status=auth_response.status_code)
     return headers
 
+
 def fetch_movie_data(request, lang_code='en'):
     headers = omdb_auth()
     movie_url = f"https://api.themoviedb.org/3/search/movie?query={request.GET.get('query', '')}&language={lang_code}&page=1"
@@ -32,7 +33,7 @@ def fetch_movie_data(request, lang_code='en'):
 
 def fetch_popular_movies(request, lang_code='en'):
     headers = omdb_auth()
-    movies_url = "https://api.themoviedb.org/3/movie/popular?language=en-US&page=1"
+    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&page=1"
     movies_response = requests.get(movies_url, headers=headers)
     if movies_response.status_code == 200:
         movies_data = movies_response.json()
@@ -41,3 +42,12 @@ def fetch_popular_movies(request, lang_code='en'):
     return JsonResponse(movies_data, safe=False)
 
 
+def get_movie_infos_by_id(request, lang_code='en', id=None):
+    headers = omdb_auth()
+    movie_url = f"https://api.themoviedb.org/3/movie/{id}?language={lang_code}&page=1"
+    movie_response = requests.get(movie_url, headers=headers)
+    if movie_response.status_code == 200:
+        movie_data = movie_response.json()
+    else:
+        return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
+    return JsonResponse(movie_data, safe=False)

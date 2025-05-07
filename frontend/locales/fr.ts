@@ -1,4 +1,4 @@
-export const messages = {
+const fr = {
   'home': 'Accueil',
   'movies': 'Films',
   'shows': 'Séries',
@@ -10,3 +10,5 @@ export const messages = {
   'search': 'Entrez le nom d\'un film',
   'noresults': 'Aucun resultat trouvé',
 }
+
+export default fr;
