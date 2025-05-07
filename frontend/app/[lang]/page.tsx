@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { fetchApi } from './fetch-api';
+import { fetchApi } from './components/fetch-api';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -15,11 +15,8 @@ interface Poster {
 
 const Home = () => {
   const router = useRouter();
-  const [posters, setPosters] = useState<Poster[] | null>(null);
+  const [posters, setPosters] = useState<Poster[]>([]);
 
-  const params = useParams();
-  const lang = params.lang;
-  console.log('langue: ', lang);
   useEffect(() => {
     fetchApi("randomPoster")
       .then((response: Poster[]) => {
@@ -29,9 +26,6 @@ const Home = () => {
       .catch((error: Error) => console.error("API Error:", error));
   }, []);
 
-  const goToLanding = () => {
-	router.push('landing');
-  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
@@ -42,7 +36,7 @@ const Home = () => {
 	    <button className="cursor-pointer">CLIQUEZ ICI</button>
 	  </Link>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {posters ? (
+        {posters.length > 0 ? (
           posters.map((poster, index) => (
             <div key={poster.tconst || index} className="bg-gray-200 p-4 rounded-lg shadow-md">
               <img src={poster.poster_url} alt={poster.title} className="rounded-lg" />
