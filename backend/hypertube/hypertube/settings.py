@@ -11,9 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from django.utils.translation import gettext_lazy as _
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -46,8 +49,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'hypertube',
     'corsheaders',
+    'hypertube',
+]
+LANGUAGES = [
+    ('en', _('English')),
+    ('fr', _('French')),
 ]
 
 MIDDLEWARE = [
@@ -59,18 +66,20 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 # à modifier pour limiter l'accès
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4000',
+    'http://localhost:5000',
     'http://localhost',
 ]
 
 CORS_ALLOW_HEADERS = [
     "content-type",
     "accept",
-    "authhorization",
+    "authorization",
     "x-csrftoken",
 ]
 
@@ -148,3 +157,36 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#
+# LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# LOG_LEVEL = 'DEBUG'  # ou 'INFO', 'WARNING', 'ERROR', selon ce que tu préfères
+#
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '{levelname} {asctime} {module} {message}',
+#             'style': '{',
+#         },
+#         'simple': {
+#             'format': '{levelname} {message}',
+#             'style': '{',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'verbose',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',  # ou un autre niveau que tu souhaites
+#             'propagate': True,
+#         },
+#     },
+# }

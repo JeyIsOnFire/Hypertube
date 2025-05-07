@@ -15,11 +15,11 @@ services:
     stdin_open: true  # Permet une interaction continue
     tty: true  # Nécessaire pour le hot reload
 
-  backend-api:
-    container_name: backend-api
+  backend:
+    container_name: backend
     build:
-      context: . # Contexte de build à la racine du projet
-      dockerfile: ./backend/Dockerfile  # Spécifie explicitement le chemin vers le Dockerfile
+      context: .
+      dockerfile: ./backend/Dockerfile
     ports:
       - "5000:5000"
     env_file:
@@ -29,8 +29,43 @@ services:
     networks:
       - hypertube-net
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
+  backend-user:
+    container_name: backend-user
+    build:
+      context: .
+      dockerfile: ./auth/Dockerfile
+    ports:
+      - "6000:6000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend/hypertube:/app
+    networks:
+      - hypertube-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # backend-api:
+  #   container_name: backend-api
+  #   build:
+  #     context: .
+  #     dockerfile: ./auth/Dockerfile
+  #   ports:
+  #     - "7000:7000"
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./backend/hypertube:/app
+  #   networks:
+  #     - hypertube-net
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #
   nginx:
     container_name: server
     image: nginx:alpine
@@ -44,7 +79,7 @@ services:
       - hypertube-net
     depends_on:
       - frontend
-      - backend-api
+      - backend
 
   db:
     container_name: db
@@ -62,6 +97,12 @@ services:
       POSTGRES_DB: hypertube
     networks:
       - hypertube-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d db"]
+      interval: 15s
+      timeout: 30s
+      retries: 5
+      start_period: 15s
 
   pgadmin:
     container_name: pgadmin
@@ -76,13 +117,14 @@ services:
     depends_on:
       - db
 
-  redis:
-    container_name: redis
-    image: redis:alpine
-    ports:
-      - "6380:6379"
-    networks:
-      - hypertube-net
+  # redis:
+  #   container_name: redis
+  #   image: redis:alpine
+  #   ports:
+  #     - "6380:6379"
+  #   networks:
+  #     - hypertube-net
+
 
   # streamer:
   #   container_name: stream
@@ -92,7 +134,7 @@ services:
   #   networks:
   #     - hypertube-net
   #   depends_on:
-  #     - backend-api
+  #     - backend
 
 networks:
   hypertube-net:

@@ -7,4 +7,6 @@ export const messages = {
   'searchformovies': 'Start Browsing Movies right NOW!',
   'enterhypertube': 'Enter the Hypertube',
   'rightsreserved': '© 2025 HyperTube.Stream – All rights reserved',
+  'search': 'Enter the name of a movie',
+  'noresults': 'No results found',
 }
