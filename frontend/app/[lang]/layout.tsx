@@ -30,9 +30,11 @@ export default async function RootLayout({ children }: Readonly<{
 			rel="stylesheet"
 		  />
 	  </head>
+
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+
         {children}
       </body>
     </html>

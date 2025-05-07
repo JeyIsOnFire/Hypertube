@@ -44,15 +44,6 @@ def display_query(request, lang_code = get_language()):
     
     return JsonResponse({'received_query': result})
 
-
-# API key
-# f79480e4f43a3fae72de354de3e27a0d
-# TOKEN
-# eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmNzk0ODBlNGY0M2EzZmFlNzJkZTM1NGRlM2UyN2EwZCIsIm5iZiI6MTc0NjUzOTc5NS4yNjksInN1YiI6IjY4MWExNTEzZDA1YjI1MTI4Y2M2MzU1MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.FnkH26lSSBoFw_slKP6VGU0HxrnPf0Z_V--Kr0Oe9y8
-
-from django.http import JsonResponse
-import requests
-
 def fetch_movie_data(request, lang_code='en'):
     api_key = "f79480e4f43a3fae72de354de3e27a0d"
     token = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmNzk0ODBlNGY0M2EzZmFlNzJkZTM1NGRlM2UyN2EwZCIsIm5iZiI6MTc0NjUzOTc5NS4yNjksInN1YiI6IjY4MWExNTEzZDA1YjI1MTI4Y2M2MzU1MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.FnkH26lSSBoFw_slKP6VGU0HxrnPf0Z_V--Kr0Oe9y8"

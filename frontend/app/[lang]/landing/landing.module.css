@@ -56,10 +56,11 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   padding: 2rem;
+  background: var(--dark);
 }
 .card {
-  background: var(--dark);
-  color: var(--beige);
+  background: var(--beige);
+  color: var(--dark);
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
@@ -169,7 +170,7 @@
 }
 
 .filmCard {
-  background: var(--mint);
+  background: var(--beige);
   padding: 1rem;
   border-radius: 2px;
   cursor: pointer;
@@ -180,7 +181,7 @@
 }
 
 .filmCard:hover {
-  background: var(--beige);
+  background: var(--orange);
 }
 
 
