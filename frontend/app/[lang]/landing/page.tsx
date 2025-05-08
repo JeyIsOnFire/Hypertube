@@ -31,12 +31,6 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
     fetchPopularMovies();
   }, []);
 
-
-
-  const apiTest = () => {
-  }
-
-
   return (
     <>
 

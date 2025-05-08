@@ -86,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
               </svg></a>
             </div>
             <div className={styles.top}>
-              <h1>HYPERTUBE.LAJA</h1>
+              <h1>HYPERTUBE</h1>
             </div>
             <div className={styles.burger}>
               <Burger />
@@ -97,7 +97,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
         <>
           <LanguageSwitcher />
           <div className={styles.top}>
-            <h1>HYPERTUBE.LAJA</h1>
+            <h1>HYPERTUBE</h1>
           </div>
 
           <nav className={styles.nav}>
