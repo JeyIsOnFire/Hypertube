@@ -38,12 +38,14 @@
   position: fixed;
   top: 0;
   left: -100%;
-  width: 250px;
+  width: 70%;
   height: 100vh;
-  background-color: white;
+  background-color: var(--dark);
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
   transition: left 0.5s ease;
   z-index: 1000;
+  font-size: 4.5rem;
+  color: var(--beige);
 }
 
 .slideMenu.open {
@@ -58,8 +60,36 @@
 }
 
 .nav a {
-  margin: 10px 0;
+  margin: 10% 0;
   text-decoration: none;
-  color: black;
-  font-size: 18px;
+  color: var(--beige);
+  font-size: 2.0rem;
+
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  width: 100%;
+}
+
+.row2 {
+  display: flex;
+  justify-content: left;
+}
+
+.row2 a {
+  margin-right: 30px;
+}
+
+.logoutIcon, .searchIcon {
+  fill: var(--beige);
+  width: 1.4rem;
+  height: 1.4em;
+}
+
+.settingsIcon:hover, .logoutIcon:hover, .searchIcon:hover {
+  fill: var(--mint);
 }
