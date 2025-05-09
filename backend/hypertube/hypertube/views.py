@@ -31,9 +31,9 @@ def fetch_movie_data(request, lang_code='en'):
     return JsonResponse(movie_data, safe=False)
 
 
-def fetch_popular_movies(request, lang_code='en'):
+def fetch_popular_movies(request, lang_code='en', pageNum=None):
     headers = omdb_auth()
-    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&page=1"
+    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&page={pageNum}"
     movies_response = requests.get(movies_url, headers=headers)
     if movies_response.status_code == 200:
         movies_data = movies_response.json()

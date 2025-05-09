@@ -97,11 +97,11 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
         <>
           <LanguageSwitcher />
           <div className={styles.top}>
-            <h1>HYPERTUBE</h1>
+            <a href="/"><h1>HYPERTUBE</h1></a>
           </div>
 
           <nav className={styles.nav}>
-            <a href="#">{t.home}</a>
+            <a href="/">{t.home}</a>
             <a href="#">{t.movies}</a>
             <a href="#">{t.shows}</a>
             <a href="#">{t.trending}</a>
@@ -156,7 +156,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
                     className={styles.filmCard}
                   >
                     <h3>{film['title']}</h3>
-                    <p>{film['release_date']}</p>
+                    <p>{film['release_date'].slice(0, 4)}</p>
                   </Link>
                 ))}
               </div>

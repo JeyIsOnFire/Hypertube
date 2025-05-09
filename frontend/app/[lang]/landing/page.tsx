@@ -11,61 +11,53 @@ import translations from '@/locales';
 const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
 
   const lang = use(params).lang;
-  const [response, setReponse] = useState(null); 
   const t = translations[lang];
   if (!t) {
     console.error(`Missing translations for lang: ${lang}`);
     return null;
   }
+
   const [popularFilms, setPopularFilms] = useState([]);
+  const [pageNum, setPageNum] = useState<number>(1);
 
   useEffect(() => {
     const fetchPopularMovies = async () => {
       try {
-        const res = await fetchApi(`fetchPopularMovies`);
-        setPopularFilms(res);
+        const res = await fetchApi(`fetchPopularMovies/${pageNum}`);
+        console.log("res:", res);
+        setPopularFilms(prev => [...prev, ...res['results']]);
+        console.log("popular:", popularFilms);
       } catch (err) {
         console.error("Erreur API: ", err);
       }
     };
     fetchPopularMovies();
-  }, []);
+  }, [pageNum]);
+
+  const getColorFromNote = (note) => {
+    const clampedNote = Math.max(0, Math.min(parseInt(note), 10)); 
+    const hue = (clampedNote / 10) * 120;
+    return `hsl(${hue}, 100%, 30%)`;
+  }
+
+  const handleScroll = () => {
+    const scrollTop = window.scrollY;
+    const winH = window.innerHeight;
+    const docHeight = document.documentElement.scrollHeight;
+
+    if (scrollTop + winH >= docHeight - 50) {
+      setPageNum(prev => prev + 1);
+      console.log("Bas de page");
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  });
 
   return (
     <>
-
-      {/*----------------------------- SEARCH BAR -----------------------------*/}
-      {response && (() => {
-        const parsed = JSON.parse(response)['results'];
-        console.log("JSON", parsed);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return (
-            <div className={styles.results}>
-              <div className={styles.filmList}>
-                {parsed.slice(0, 10).map((film: any, index: number) => (
-                  <Link
-                    key={index}
-                    href={`/films/${film['id']}`}
-                    className={styles.filmCard}
-                  >
-                    <h3>{film['title']}</h3>
-                    <p>{film['release_date']}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          );
-        } else {
-          return (
-            <div className={styles.results}>
-              <div className={styles.filmList}>
-                <div className={`${styles.filmCard}`}>{t.noresults}</div>;
-              </div>
-            </div>
-          )
-        }
-      })()}
-
       {/*----------------------------- ENTER THE HYPERTUBE -----------------------------*/}
       <section className={styles.hero}>
         <h2>{t.searchformovies}</h2>
@@ -74,21 +66,29 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
 
       {/*----------------------------- POPULAR FILMS -----------------------------*/}
       <section className={styles.grid}>
-        {popularFilms.results?.map((film) => (
+        {popularFilms?.map((film, index: number) => (
           <div key={film.id} className={styles.card}>
-            <img src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} />
-            <div className={styles.info}>
-              <h3>{film.title}</h3>
-              <p>{film.release_date.slice(0, 4)}</p>
-            </div>
+            <Link
+              onClick={()=>setResponse(null)}
+              key={index}
+              href={`/films/${film['id']}`}
+            >
+              <div className={styles.info}>
+                <img src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} />
+                <div style={{ padding: '0.2rem' }}>
+                  <h3>{film.title}</h3>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <p>{film.release_date.slice(0, 4)}</p>
+                    <p><span style={{ color: getColorFromNote(film.vote_average)}}>{film.vote_average}</span>/10</p>
+                  </div> 
+                </div>
+              </div> 
+            </Link >
           </div>
         ))}
       </section>
 
 
-      {popularFilms && (
-        <div>{JSON.stringify(popularFilms)}</div>
-      )}
 
     </>
   );
