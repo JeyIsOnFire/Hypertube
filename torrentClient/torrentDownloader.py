@@ -2,13 +2,71 @@ import asyncio
 from urllib.parse import urlencode
 import aiohttp
 
+class Peer:
+    def __init__(self, ip:str, port:int):
+        if not isinstance(ip, str):
+            raise TypeError("IP must be a string.")
+        if not isinstance(port, int):
+            raise TypeError("Port must be an integer.")
+        if len(ip) == 0:
+            raise ValueError("IP cannot be empty.")
+        if port < 0 or port > 65535:
+            raise ValueError("Port must be between 0 and 65535.")
+        self.ip = ip
+        self.port = port
+        self.reader = None
+        self.writer = None
+        self.status = "disconnected"
+    
+    def __str__(self):
+        return f"Peer({self.ip}:{self.port})"
+    def __repr__(self):
+        return f"Peer({self.ip}:{self.port})"
+
+    async def connect(self):
+        try:
+            self.reader, self.writer = await asyncio.wait_for(
+                asyncio.open_connection(self.ip, self.port),
+                timeout=5
+            )
+            self.status = "connected"
+        except Exception as e:
+            self.status = "disconnected"
+        return self
+    
+    async def close(self):
+        if self.writer:
+            self.writer.close()
+            await self.writer.wait_closed()
+
 class TorrentFile:
-    def __init__(self, file_name):
+    def __init__(self, file_name:str = None, magnet_link:str = None):
         import os
         import random
         import string
+        if file_name is None and magnet_link is None:
+            raise ValueError("Either file_name or magnet_link must be provided.")
+        if file_name is not None and magnet_link is not None:
+            raise ValueError("Only one of file_name or magnet_link must be provided.")
+        if file_name is not None:
+            if not isinstance(file_name, str):
+                raise TypeError("file_name must be a string.")
+            if len(file_name) == 0:
+                raise ValueError("file_name cannot be empty.")
+            if not file_name.endswith(".torrent"):
+                raise ValueError("file_name must end with .torrent.")
+            if not os.path.exists(os.path.join(os.path.dirname(__file__), "torrents", file_name)):
+                raise FileNotFoundError(f"Torrent file {file_name} does not exist.")
+        if magnet_link is not None:
+            if not isinstance(magnet_link, str):
+                raise TypeError("magnet_link must be a string.")
+            if len(magnet_link) == 0:
+                raise ValueError("magnet_link cannot be empty.")
+            if not magnet_link.startswith("magnet:"):
+                raise ValueError("magnet_link must start with 'magnet:'.")
+            raise NotImplementedError("Magnet link support is not implemented yet.")
         self.file_name = file_name
-        self.torrent_file_path = os.path.join(os.path.dirname(__file__), "torrents", f"{file_name}.torrent")
+        self.torrent_file_path = os.path.join(os.path.dirname(__file__), "torrents", f"{file_name}")
         if not os.path.exists(self.torrent_file_path):
             raise FileNotFoundError(f"Torrent file {self.file_name} does not exist.")
         self.torrent_infos = {
@@ -28,14 +86,15 @@ class TorrentFile:
                 "available": [],
                 "connected": []
             },
-            "announces": {
+            "trackers": {
                 "default": None,
-                "groups": []
+                "groups": [],
+                "active": [],
+                "next_contact": None
             },
-            "time_before_next_announce": None,
         }
         self._parse_torrent_file()
-        self._exclude_udp_announce()
+        self._exclude_udp_tracker()
 
     def __str__(self):
         infos = [
@@ -47,18 +106,27 @@ class TorrentFile:
             "Torrent Hash: " + str(self.torrent_infos["hash"]),
             "Torrent Files: " + str(self.torrent_infos["files"]),
             "Torrent Pieces Length: " + str(self.torrent_infos["pieces"]["length"]),
-            "Torrent announces: " + str(self.torrent_infos["announces"]["default"]),
-            "Torrent announces groups: " + str(self.torrent_infos["announces"]["groups"]),
+            "Torrent trackers: " + str(self.torrent_infos["trackers"]["default"]),
+            "Torrent trackers groups: " + str(self.torrent_infos["trackers"]["groups"]),
             "Torrent Creation Date: " + str(self.torrent_infos["creation_date"]),
             "Torrent Comment: " + str(self.torrent_infos["comment"]),
             "Torrent Created By: " + str(self.torrent_infos["created_by"]),
             "Torrent Peers Available: " + str(self.torrent_infos["peers"]["available"]),
             "Torrent Peers Connected: " + str(self.torrent_infos["peers"]["connected"]),
+            "Torrent Trackers Active: " + str(self.torrent_infos["trackers"]["active"]),
+            "Torrent Trackers Next Contact: " + str(self.torrent_infos["trackers"]["next_contact"]),
         ]
         return "\n".join(infos)
     
     def __repr__(self):
         return f"TorrentFile({self.file_name})"
+    
+    async def close(self):
+        if len(self.torrent_infos["peers"]["connected"]) > 0:
+            for peer_conn in self.torrent_infos["peers"]["connected"]:
+                await peer_conn.close()
+                self.torrent_infos["peers"]["connected"].remove(peer_conn)
+        await self.close_trackers()
 
     def _parse_torrent_file(self):
         import bencodepy
@@ -82,14 +150,21 @@ class TorrentFile:
             if b'pieces' not in torrent_data[b'info']:
                 raise ValueError("Torrent file does not contain pieces.")
             self.torrent_infos["pieces"]["hashes"] = [torrent_data[b'info'][b'pieces'][i:i+20] for i in range(0, len(torrent_data[b'info'][b'pieces']), 20)]
-            if b'files' in torrent_data[b'info']:
-                for file in torrent_data[b'info'][b'files']:
-                    file_path = os.path.join(self.torrent_infos["name"], *[part for part in file[b'path']])
+            info = torrent_data[b'info']
+            self.torrent_infos["name"] = info[b'name'].decode(errors='ignore')
+
+            if b'files' in info:  # Multi-fichier
+                self.torrent_infos["size"] = 0
+                for file in info[b'files']:
+                    file_path = os.path.join(
+                        self.torrent_infos["name"],
+                        *[part.decode(errors='ignore') for part in file[b'path']]
+                    )
                     self.torrent_infos["files"].append(file_path)
                     self.torrent_infos["size"] += file[b'length']
-            else:
+            else:  # Mono-fichier
                 self.torrent_infos["files"].append(self.torrent_infos["name"])
-                self.torrent_infos["size"] = torrent_data[b'info'][b'length']
+                self.torrent_infos["size"] = info[b'length']
             if b'creation date' in torrent_data:
                 self.torrent_infos["creation_date"] = torrent_data[b'creation date']
             if b'comment' in torrent_data:
@@ -97,40 +172,42 @@ class TorrentFile:
             if b'created by' in torrent_data:
                 self.torrent_infos["created_by"] = torrent_data[b'created by']
             if b'announce' not in torrent_data:
-                raise ValueError("Torrent file does not contain announce URL.")
-            self.torrent_infos["announces"]["default"] = torrent_data[b'announce']
-            if b'announce-list' in torrent_data:
+                raise ValueError("Torrent file does not contain tracker URL.")
+            self.torrent_infos["trackers"]["default"] = torrent_data[b'announce']
+            if b'tracker-list' in torrent_data:
                 for group in torrent_data[b'announce-list']:
-                    self.torrent_infos["announces"]["groups"].append([url for url in group])
+                    self.torrent_infos["trackers"]["groups"].append([url for url in group])
             else:
-                self.torrent_infos["announces"]["groups"].append([self.torrent_infos["announces"]["default"]])
+                self.torrent_infos["trackers"]["groups"].append([self.torrent_infos["trackers"]["default"]])
         except Exception as e:
             raise ValueError(f"Failed to parse torrent file: {e}")
     
-    def _exclude_udp_announce(self):
+    def _exclude_udp_tracker(self):
         import re
-        if self.torrent_infos["announces"]["default"] is not None:
-            if re.search(r"^udp://", self.torrent_infos["announces"]["default"].decode('utf-8')):
-                self.torrent_infos["announces"]["default"] = None
-        for group in self.torrent_infos["announces"]["groups"]:
+        if self.torrent_infos["trackers"]["default"] is not None:
+            if re.search(r"^udp://", self.torrent_infos["trackers"]["default"].decode('utf-8')):
+                self.torrent_infos["trackers"]["default"] = None
+        for group in self.torrent_infos["trackers"]["groups"]:
             for url in group:
-                if re.search(r"^udp://", url.decode('utf-8')):
+                if re.search(r"^udp://", url.decode('utf-8', errors='ignore')):
                     group.remove(url)
 
     async def contact_tracker(self, event: str, session: aiohttp.ClientSession) -> list | None:
-        from urllib.parse import urlparse, quote_from_bytes
-        import requests
-        import time
-        if len(self.torrent_infos["announces"]["groups"]) == 0:
-            raise ValueError("No announce URL found.")
+        from urllib.parse import urlparse
+        if len(self.torrent_infos["trackers"]["groups"]) == 0:
+            raise ValueError("No tracker URL found.")
         response_ret = []
-        for group in self.torrent_infos["announces"]["groups"]:
+        loop_on = self.torrent_infos["trackers"]["groups"]
+        if event == "stopped":
+            loop_on = [self.torrent_infos["trackers"]["active"]]
+        for group in loop_on:
             if len(group) == 0:
                 continue
             if len(response_ret) > 0:
                 break
             for url in group:
-                url = url.decode('utf-8')
+                if isinstance(url, bytes):
+                    url = url.decode('utf-8', errors='ignore')
                 parsed_url = urlparse(url)
                 if parsed_url.scheme.lower() not in ['http', 'https']:
                     continue
@@ -145,50 +222,87 @@ class TorrentFile:
                         "event": event,
                         "compact": 1,
                     }
-                    url = f"{url}?{urlencode(params)}"
-                    async with session.get(url) as response:
+                    urlparams = f"{url}?{urlencode(params)}"
+                    async with session.get(urlparams) as response:
                         print(f"Contacting tracker: {url}")
                         if response.status == 200:
                             data = await response.read()
                             if len(data) > 0:
                                 response_ret.append(data)
+                                if event == "started":
+                                    self.torrent_infos["trackers"]["active"].append(url)
+                                elif event == "stopped":
+                                    self.torrent_infos["trackers"]["active"].remove(url)
                             else:
                                 print(f"No data received from {url}")
                 except Exception as e:
                     print(f"Failed to contact tracker: {e}")
-                    # print(f"details: {e.with_traceback()}")
         return response_ret if len(response_ret) > 0 else None
     
     async def recover_peers(self):
-        import json
         import bencodepy
-        import hashlib
-        import os
-        import time
         try:
             async with aiohttp.ClientSession() as session:
                 response = await self.contact_tracker("started", session)
-                # print(f"Response from tracker: {bencodepy.decode(response)}")
-                await asyncio.sleep(1)
-                await self.contact_tracker("stopped", session)
-                # if response is None:
-                #     raise ValueError("No response from tracker.")
-                # for data in response:
-                #     decoded_data = bencodepy.decode(data)
-                #     if b'peers' in decoded_data:
-                #         peers = decoded_data[b'peers']
-                #         if isinstance(peers, bytes):
-                #             peers = [peers[i:i+6] for i in range(0, len(peers), 6)]
-                #         self.torrent_infos["peers"]["available"] += peers
-                #     if b'interval' in decoded_data:
-                #         self.torrent_infos["time_before_next_announce"] = decoded_data[b'interval']
-                #     if b'complete' in decoded_data:
-                #         self.torrent_infos["peers"]["connected"] = decoded_data[b'complete']
-                #     if b'incomplete' in decoded_data:
-                #         self.torrent_infos["peers"]["available"] = decoded_data[b'incomplete']
-            return self.torrent_infos
+                if response is None:
+                    raise ValueError("No response from tracker.")
+                for data in response:
+                    decoded_data = bencodepy.decode(data)
+                    print(f"Decoded data: {decoded_data}")
+                    if b'failure reason' in decoded_data:
+                        raise ValueError(f"Tracker error: {decoded_data[b'failure reason']}")
+                    if b'interval' in decoded_data:
+                        if self.torrent_infos["trackers"]["next_contact"] is None:
+                            self.torrent_infos["trackers"]["next_contact"] = decoded_data[b'interval']
+                        else:
+                            self.torrent_infos["trackers"]["next_contact"] = min(self.torrent_infos["trackers"]["next_contact"], decoded_data[b'interval'])
+                    if b'peers' in decoded_data:
+                        peers = decoded_data[b'peers']
+                        print(f"Peers data: {peers}")
+                        if len(peers) % 6 == 0:  # Format compact, chaque peer fait 6 octets
+                            parsed_peers = []
+                            for i in range(0, len(peers), 6):
+                                peer = peers[i:i+6]
+                                ip = '.'.join(map(str, peer[:4]))  # Les 4 premiers octets pour l'IP
+                                port = (peer[4] << 8) + peer[5]  # Les 2 derniers octets pour le port
+                                parsed_peers.append((ip, port))
+                            self.torrent_infos["peers"]["available"].extend(parsed_peers)
         except Exception as e:
             raise ValueError(f"Failed to recover peers: {e}")
+
+    async def connect_peers(self):
+        peers = self.torrent_infos["peers"]["available"]
+        if len(peers) == 0:
+            raise ValueError("No peers available.")
+        tasks = []
+        for peer in peers:
+            if not isinstance(peer, tuple) or len(peer) != 2:
+                raise ValueError("Invalid peer format.")
+            ip, port = peer
+            if not isinstance(ip, str) or not isinstance(port, int):
+                raise TypeError("IP must be a string and port must be an integer.")
+            if len(ip) == 0:
+                raise ValueError("IP cannot be empty.")
+            if port < 0 or port > 65535:
+                raise ValueError("Port must be between 0 and 65535.")
+            peer_conn = Peer(ip, port)
+            tasks.append(peer_conn.connect())
+        if len(tasks) == 0:
+            raise ValueError("No peers to connect to.")
+        connected_peers = await asyncio.gather(*tasks)
+        for peer_conn in connected_peers:
+            if peer_conn.status == "connected":
+                self.torrent_infos["peers"]["connected"].append(peer_conn)
+            else:
+                print(f"Failed to connect to peer: {peer_conn}")
+
+    async def close_trackers(self):
+        import aiohttp
+        try:
+            async with aiohttp.ClientSession() as session:
+                await self.contact_tracker("stopped", session)
+        except Exception as e:
+            raise ValueError(f"Failed to close trackers: {e}")
 
 
 async def async_main():
@@ -197,15 +311,19 @@ async def async_main():
     torrent_dir = os.path.join(base_dir, "torrents")
     if not os.path.exists(torrent_dir):
         os.makedirs(torrent_dir)
-    user_input =  "ubuntuiso"
+    user_input =  "Child_Bride.avi.torrent"
     if not user_input:
         print("No input provided.")
         return
     try:
-        torrent = TorrentFile(user_input)
+        torrent = TorrentFile(file_name=user_input)
         await torrent.recover_peers()
-        # print(result)
+        await torrent.connect_peers()
+        # await torrent.close_trackers()
         print(torrent)
+        await torrent.close()
+        del torrent
+
     except Exception as e:
         print(f"An error occurred: {e}")
         return
