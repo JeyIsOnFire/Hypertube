@@ -33,7 +33,6 @@ interface MovieData {
   vote_count: number;
 }
 
-
 export default function FilmPage({ params, }: { params: Promise<{ idFilm: string }>; }) {
 
   const { idFilm } = use(params);

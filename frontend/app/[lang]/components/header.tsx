@@ -101,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
           </div>
 
           <nav className={styles.nav}>
-            <a href="/">{t.home}</a>
+            <a href="#">{t.home}</a>
             <a href="#">{t.movies}</a>
             <a href="#">{t.shows}</a>
             <a href="#">{t.trending}</a>

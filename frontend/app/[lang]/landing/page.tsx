@@ -21,18 +21,33 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
   const [pageNum, setPageNum] = useState<number>(1);
 
   useEffect(() => {
-    const fetchPopularMovies = async () => {
-      try {
-        const res = await fetchApi(`fetchPopularMovies/${pageNum}`);
-        console.log("res:", res);
-        setPopularFilms(prev => [...prev, ...res['results']]);
-        console.log("popular:", popularFilms);
-      } catch (err) {
-        console.error("Erreur API: ", err);
-      }
-    };
-    fetchPopularMovies();
+    const debounce = setTimeout(() => {
+      const fetchPopularMovies = async () => {
+        try {
+          console.log("page num:", pageNum);
+          const res = await fetchApi(`fetchPopularMovies/${pageNum}`);
+
+          const newFilms = res?.results || [];
+
+          setPopularFilms(prev => {
+            const combined = [...prev, ...newFilms];
+            const unique = combined.filter(
+              (film, index, self) => index === self.findIndex(f => f.id === film.id)
+            );
+            return unique;
+          });
+
+          console.log("res:", res);
+        } catch (err) {
+          console.error("Erreur API: ", err);
+        }
+      };
+      fetchPopularMovies();
+    }, 400);
+
+    return () => clearTimeout(debounce);
   }, [pageNum]);
+
 
   const getColorFromNote = (note) => {
     const clampedNote = Math.max(0, Math.min(parseInt(note), 10)); 
@@ -45,7 +60,7 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
     const winH = window.innerHeight;
     const docHeight = document.documentElement.scrollHeight;
 
-    if (scrollTop + winH >= docHeight - 50) {
+    if (scrollTop + winH >= docHeight - 1) {
       setPageNum(prev => prev + 1);
       console.log("Bas de page");
     }
@@ -76,10 +91,13 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
               <div className={styles.info}>
                 <img src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} />
                 <div style={{ padding: '0.2rem' }}>
-                  <h3>{film.title}</h3>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <h3>{film.title}</h3>
+                    <span>⭐{film.vote_count}</span>
+                  </div>
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     <p>{film.release_date.slice(0, 4)}</p>
-                    <p><span style={{ color: getColorFromNote(film.vote_average)}}>{film.vote_average}</span>/10</p>
+                    <p><span style={{ color: getColorFromNote(film.vote_average)}}>{film.vote_average.toString().slice(0,3)}</span>/10</p>
                   </div> 
                 </div>
               </div> 
