@@ -3,3 +3,4 @@ djangorestframework==3.16.00
 python-dotenv==1.1.0
 uvicorn==0.34.2
 psycopg2-binary==2.9.10
+django-extensions==4.1 
