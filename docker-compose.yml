@@ -13,7 +13,7 @@ services:
     depends_on:
       - frontend
       - backend-api
-      # - user-management
+      - backend-user
 
   frontend:
     container_name: frontend
@@ -44,8 +44,7 @@ services:
 
   backend-user:
     container_name: backend-user
-    build:
-      context: ./services/backend-user
+    build: ./services/backend-user
     ports:
       - "6000:6000"
     env_file:
@@ -54,31 +53,25 @@ services:
       - ./services/backend-user:/app
     networks:
       - hypertube-net
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
+    depends_on:
+      postgresql:
+        condition: service_healthy
 
-  # db:
-  #   container_name: db
-  #   build:
-  #     context: ./db
-  #     dockerfile: Dockerfile
-  #   image: postgres:17
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
-  #     # - ./backend/hypertube/imdb_data/data:/data
-  #   environment:
-  #     POSTGRES_USER: user
-  #     POSTGRES_PASSWORD: pass
-  #     POSTGRES_DB: hypertube
-  #   networks:
-  #     - hypertube-net
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U user -d db"]
-  #     interval: 15s
-  #     timeout: 30s
-  #     retries: 5
-  #     start_period: 15s
+  postgresql:
+    container_name: postgresql
+    image: postgres:17
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - hypertube-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d hypertube-db"]
+      interval: 15s
+      timeout: 30s
+      retries: 5
+      start_period: 15s
 
   # pgadmin:
   #   container_name: pgadmin
