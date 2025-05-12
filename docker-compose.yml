@@ -14,6 +14,8 @@ services:
       - NODE_ENV=development
     stdin_open: true  # Permet une interaction continue
     tty: true  # Nécessaire pour le hot reload
+    env_file:
+      - .env
 
   backend:
     container_name: backend
@@ -32,22 +34,22 @@ services:
       db:
         condition: service_healthy
 
-  backend-user:
-    container_name: backend-user
-    build:
-      context: .
-      dockerfile: ./auth/Dockerfile
-    ports:
-      - "6000:6000"
-    env_file:
-      - .env
-    volumes:
-      - ./backend/hypertube:/app
-    networks:
-      - hypertube-net
-    depends_on:
-      db:
-        condition: service_healthy
+  # backend-user:
+  #   container_name: backend-user
+  #   build:
+  #     context: .
+  #     dockerfile: ./auth/Dockerfile
+  #   ports:
+  #     - "6000:6000"
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./backend/hypertube:/app
+  #   networks:
+  #     - hypertube-net
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
 
   # backend-api:
   #   container_name: backend-api
@@ -92,9 +94,9 @@ services:
       # - ./db/script.sh:/docker-entrypoint-initdb.d/01_script.sh
       # - ./backend/hypertube/imdb_data/data:/data
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: hypertube
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} 
+      POSTGRES_DB: ${POSTGRES_DB} 
     networks:
       - hypertube-net
     healthcheck:
@@ -108,10 +110,10 @@ services:
     container_name: pgadmin
     image: dpage/pgadmin4:latest
     ports:
-      - "5050:80"
+      - "5051:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
-      PGADMIN_DEFAULT_PASSWORD: "admin"
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     networks:
       - hypertube-net
     depends_on:

@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-h$y)$0us8-w6p*2zcrf$9ksbmpxg_s7h4406zi2xhfiwp8qow8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'backend-api']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'backend-api', '82.29.169.227']
 
 # Permettre les requêtes avec les méthodes HTTP spécifiées
 CORS_ALLOW_METHODS = [
@@ -72,8 +72,9 @@ MIDDLEWARE = [
 # à modifier pour limiter l'accès
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4000',
-    'http://localhost:5000',
     'http://localhost',
+    'http://82.29.169.227',
+    'http://82.29.169.227:4000',
 ]
 
 CORS_ALLOW_HEADERS = [
