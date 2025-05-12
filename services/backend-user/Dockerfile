@@ -18,4 +18,4 @@ RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 
 # Commande par défaut lancée par le script (Uvicorn)
-CMD ["uvicorn", "app.asgi:application", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.asgi:application", "--host", "0.0.0.0", "--port", "6000"]
