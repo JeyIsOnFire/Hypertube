@@ -9,6 +9,14 @@ const fr = {
   'rightsreserved': '© 2025 HyperTube.Stream – Tous droits réservés',
   'search': 'Entrez le nom d\'un film',
   'noresults': 'Aucun resultat trouvé',
+  'genre': 'Genre',
+  'duration': 'Durée',
+  'year': 'Année',
+  'rating': 'Note',
+  'voteCount': 'Nombre de votes',
+  'casting': 'Casting',
+  'production': 'Production',
+  'watchnow': 'Regarder maintenant',
 }
 
 export default fr;

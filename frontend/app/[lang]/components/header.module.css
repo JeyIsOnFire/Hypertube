@@ -171,7 +171,6 @@
   flex-direction: row;
 }
 
-
 @media (max-width: 600px) {
   .searchIcon {
     width: 1.5rem;
@@ -192,3 +191,5 @@
     font-size: clamp(1vw, 5vw, 6vw);
   }
 }
+
+

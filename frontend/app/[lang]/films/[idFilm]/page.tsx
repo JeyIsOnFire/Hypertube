@@ -3,6 +3,7 @@
 import React, { useState, useEffect, use } from "react";
 import { fetchApi } from "@/lib/fetch-api";
 import styles from "./filmPage.module.css";
+import translations from "@/locales";
 
 interface MovieData {
   adult: boolean;
@@ -33,15 +34,21 @@ interface MovieData {
   vote_count: number;
 }
 
-export default function FilmPage({ params, }: { params: Promise<{ idFilm: string }>; }) {
+export default function FilmPage({ params, }: { params: Promise<{ idFilm: string, lang: string }>; }) {
 
   const { idFilm } = use(params);
   const [movieData, setMovieData] = useState<MovieData | null>(null);
+  const lang = use(params).lang;
+  const t = translations[lang];
+  if (!t) {
+    console.error(`Missing translations for lang: ${lang}`);
+    return null;
+  }
 
   useEffect(() => {
     const fetchMovieData = async () => {
       try {
-        const res = await fetchApi(`getMovieInfosById/${idFilm}`);
+        const res = await fetchApi(`${lang}/getMovieInfosById/${idFilm}`);
         setMovieData(res);
       } catch (err) {
         console.error("Erreur API: ", err);
@@ -63,31 +70,46 @@ export default function FilmPage({ params, }: { params: Promise<{ idFilm: string
       <div
         className={styles.background}
         style={{
-          backgroundImage: `url(https://image.tmdb.org/t/p/w300${movieData.backdrop_path ? movieData.backdrop_path : movieData.poster_path})`,
+          backgroundImage: `url(https://image.tmdb.org/t/p/w300${movieData["movie_data"].backdrop_path ? movieData["movie_data"].backdrop_path : movieData["movie_data"].poster_path})`,
         }}
       ></div>
 
       {/* Contenu principal */}
       <main className={styles.content}>
-        <h2>{movieData.original_title}</h2>
-        <img
-          src={`https://image.tmdb.org/t/p/w300${movieData.poster_path}`}
-          alt={`Affiche de ${movieData.original_title}`}
-          className={styles.poster}
-        />
-        <p className={styles.overview}>{movieData.overview}</p>
-        <ul className={styles.details}>
-          <li>
-            <strong>Genre :</strong> {movieData.genres[0]?.name || "N/A"}
-          </li>
-          <li>
-            <strong>Durée :</strong> {movieData.runtime} min
-          </li>
-          <li>
-            <strong>Année :</strong> {movieData.release_date.split("-")[0]}
-          </li>
-        </ul>
-        <button className={styles.watchButton}>Regarder maintenant</button>
+        <h2>{movieData["movie_data"].original_title}</h2>
+        <div className={styles.row}>
+          <img
+            src={`https://image.tmdb.org/t/p/w300${movieData["movie_data"].poster_path}`}
+            alt={`Affiche de ${movieData["movie_data"].original_title}`}
+            className={styles.poster}
+          />
+          <ul className={styles.details}>
+            <li>
+              <strong>{t.genre} :</strong> {movieData["movie_data"].genres?.map((genre) => genre.name).join(", ") || "N/A"}
+            </li>
+            <li>
+              <strong>{t.duration} :</strong> {movieData["movie_data"].runtime} min
+            </li>
+            <li>
+              <strong>{t.year} :</strong> {movieData["movie_data"].release_date.split("-")[0]}
+            </li>
+            <li>
+              <strong>{t.rating} :</strong> {movieData["movie_data"].vote_average} / 10
+            </li>
+            <li>
+              <strong>{t.voteCount} :</strong> {movieData["movie_data"].vote_count} votes
+            </li>
+            <li>
+              <strong>{t.casting} :</strong> {movieData["credits_data"]["cast"].slice(0, 3).map((actor) => actor.name).join(", ") || "N/A"}
+            </li>
+            <li>
+              <strong>{t.production} :</strong> {movieData["credits_data"]["crew"].slice(0, 3).map((worker) =>worker.name).join(", ") || "N/A"}
+            </li>
+          </ul>
+        </div>
+
+        <p className={styles.overview}>{movieData["movie_data"].overview}</p>
+        <button className={styles.watchButton}>{t.watchnow}</button>
         <div className={styles.videoContainer}>video</div>
       </main>
     </div>

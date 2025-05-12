@@ -24,7 +24,7 @@ def tmdb_auth():
     return headers
 
 
-def fetch_movie_data(request, lang_code='en'):
+def fetch_movie_data(request, lang_code='fr'):
     headers = tmdb_auth()
     movie_url = f"https://api.themoviedb.org/3/search/movie?query={request.GET.get('query', '')}&language={lang_code}&page=1"
     movie_response = requests.get(movie_url, headers=headers)
@@ -35,7 +35,7 @@ def fetch_movie_data(request, lang_code='en'):
     return JsonResponse(movie_data, safe=False)
 
 
-def fetch_popular_movies(request, lang_code='en', pageNum=None):
+def fetch_popular_movies(request, lang_code='fr', pageNum=None):
     headers = tmdb_auth()
     movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&page={pageNum}"
     movies_response = requests.get(movies_url, headers=headers)
@@ -46,12 +46,15 @@ def fetch_popular_movies(request, lang_code='en', pageNum=None):
     return JsonResponse(movies_data, safe=False)
 
 
-def get_movie_infos_by_id(request, lang_code='en', id=None):
+def get_movie_infos_by_id(request, lang_code='fr', id=None):
     headers = tmdb_auth()
     movie_url = f"https://api.themoviedb.org/3/movie/{id}?language={lang_code}&page=1"
+    credits_url = f"https://api.themoviedb.org/3/movie/{id}/credits?language={lang_code}&page=1"
     movie_response = requests.get(movie_url, headers=headers)
-    if movie_response.status_code == 200:
+    credits_response = requests.get(credits_url, headers=headers)
+    if movie_response.status_code == 200 and credits_response.status_code == 200:
         movie_data = movie_response.json()
+        credits_data = credits_response.json()
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
-    return JsonResponse(movie_data, safe=False)
+    return JsonResponse({"movie_data": movie_data, "credits_data": credits_data}, safe=False)

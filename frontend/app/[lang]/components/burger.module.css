@@ -85,3 +85,10 @@
 .settingsIcon:hover, .logoutIcon:hover, .searchIcon:hover {
   fill: var(--mint);
 }
+
+.languageSwitcher {
+  position: absolute;
+  top: 5%;
+  right: 25%;
+  transform: scale(2.5);
+}

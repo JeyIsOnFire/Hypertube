@@ -25,7 +25,7 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
       const fetchPopularMovies = async () => {
         try {
           console.log("page num:", pageNum);
-          const res = await fetchApi(`fetchPopularMovies/${pageNum}`);
+          const res = await fetchApi(`${lang}/fetchPopularMovies/${pageNum}`);
 
           const newFilms = res?.results || [];
 
