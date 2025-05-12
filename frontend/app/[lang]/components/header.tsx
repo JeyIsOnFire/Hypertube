@@ -55,7 +55,7 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
     const debounce = setTimeout(() => {
       const fetchData = async () => {
         try {
-          const res = await fetchApi(`fetchMovieData?query=${encodeURIComponent(query)}`);
+          const res = await fetchApi(`${lang}/fetchMovieData?query=${encodeURIComponent(query)}`);
           setResponse(res);
         } catch (err) {
           console.error("Erreur API :", err);
