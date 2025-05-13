@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState, useEffect } from 'react';
+import React, { use, useState, useEffect, useRef } from 'react';
 import styles from './landing.module.css';
 import Link from 'next/link';
 import { fetchApi } from '@/lib/fetch-api';
@@ -55,21 +55,40 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
     return `hsl(${hue}, 100%, 30%)`;
   }
 
-  const handleScroll = () => {
+  const isFetching = useRef(false);
+
+  const checkIfBottom = () => {
     const scrollTop = window.scrollY;
     const winH = window.innerHeight;
     const docHeight = document.documentElement.scrollHeight;
 
-    if (scrollTop + winH >= docHeight - 1) {
+    return scrollTop + winH >= docHeight - 1;
+  };
+
+  const tryLoadNextPage = () => {
+    if (!isFetching.current && checkIfBottom()) {
+      isFetching.current = true;
       setPageNum(prev => prev + 1);
-      console.log("Bas de page");
+      console.log("Chargement page suivante");
     }
   };
 
+  // Vérifie au scroll
   useEffect(() => {
+    const handleScroll = () => tryLoadNextPage();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  });
+  }, []);
+
+  // Vérifie aussi après chaque ajout de contenu
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      isFetching.current = false;
+      tryLoadNextPage(); // 👈 Si on est toujours en bas => on recharge
+    }, 500); // Temps fictif de "chargement"
+
+    return () => clearTimeout(timeout);
+  }, [pageNum]);
 
   return (
     <>
