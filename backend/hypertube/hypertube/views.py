@@ -42,7 +42,7 @@ def fetch_with_scraper(request, movie_data):
             for movie in movie_data['results']:
                 movie_keyword = movie['original_title'] + " " + str(movie['release_date'][:4])
                 if movie_keyword in scrap_data:
-                    original_title = re.sub(r'[._\-]+', ' ', movie["original_title"].lower())
+                    original_title = re.sub(r'[._\-]+', ' ', movie['original_title'].lower())
                     original_title = re.sub(':', '', original_title)
                     if original_title in scrap_data[movie_keyword]:
                         filtered_movies['results'].append(movie)

@@ -23,7 +23,7 @@ import asyncio
 import httpx
 from bs4 import BeautifulSoup
 
-BASE_URL = "https://1337x.to"
+LEET_URL = "https://1337x.to"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
            "Accept-Language": "en-US,en;q=0.5",
            "Referer": "https://google.com/",
@@ -50,8 +50,8 @@ async def get_torrent_details(client, relative_url):
         "magnet": magnet["href"] if magnet else None
     }
 
-async def search_torrents(keyword, client, get_magnet=True):
-    url = f"{BASE_URL}/category-search/{keyword}/Movies/1/"
+async def search_torrents_1337x(keyword, client, get_magnet=True):
+    url = f"{LEET_URL}/category-search/{keyword}/Movies/1/"
     print(f"Searching for {keyword} at {url}")
     if get_magnet:
         html = await fetch_html(client, url)
@@ -63,6 +63,32 @@ async def search_torrents(keyword, client, get_magnet=True):
         results = []
         soup = BeautifulSoup(html, "html.parser")
         links = soup.select("td.name > a:nth-of-type(2)")
+        links = links[:5]
+        if get_magnet:
+            tasks = [get_torrent_details(client, a["href"]) for a in links]
+            page_results = await asyncio.gather(*tasks)
+            results.extend([r for r in page_results if r["magnet"]])
+        else:
+            for a in links:
+                title = a.text.strip()
+                results.append(title)
+            # results.extend([r for r in links if r["href"]])
+        return results
+
+
+async def search_torrents_yts(keyword, client, get_magnet=True):
+    url = f"https://yts.mx/browse-movies/{keyword}/all/all/0/latest/0/all"
+    print(f"Searching for {keyword} at {url}")
+    if get_magnet:
+        html = await fetch_html(client, url)
+    else:
+        html = await fetch_html(client, url, delay=0)
+    if not html:
+        return []
+    else:
+        results = []
+        soup = BeautifulSoup(html, "html.parser")
+        links = soup.select("a.browse-movie-title")
         links = links[:5]
         if get_magnet:
             tasks = [get_torrent_details(client, a["href"]) for a in links]
@@ -118,13 +144,15 @@ async def search(request: Request):
             key = keywords[i]
             if not key:
                 continue
-            tasks.append(search_torrents(key, get_magnet=False, client=client))
+            tasks.append(search_torrents_1337x(key, get_magnet=False, client=client))
+            tasks.append(search_torrents_yts(key, get_magnet=False, client=client))
         results = await asyncio.gather(*tasks)
         for key in keywords:
             key = key.strip()
             if not key:
                 continue
             result_req = results.pop(0)
+            result_req.extend(results.pop(0))
             # print(f"Found {len(result_req)} results for keyword '{key}'")
             if len(result_req) == 0:
                 print(f"No results found for keyword '{key}'")
@@ -133,7 +161,7 @@ async def search(request: Request):
             ret[key] = []
             for result in result_req:
                 if type(result) == str and len(result) > 0:
-                    movie_name = clean_title(parse_movie_name(result))
+                    movie_name = parse_movie_name(result)
                     movie_name = movie_name.lower()
                     ret[key].append(movie_name if movie_name else result)
                 else:
