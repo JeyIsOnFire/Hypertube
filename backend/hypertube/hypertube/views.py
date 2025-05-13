@@ -23,7 +23,6 @@ def tmdb_auth():
         return JsonResponse({'error': 'Authentication failed'}, status=auth_response.status_code)
     return headers
 
-
 def fetch_movie_data(request, lang_code='fr'):
     headers = tmdb_auth()
     movie_url = f"https://api.themoviedb.org/3/search/movie?query={request.GET.get('query', '')}&language={lang_code}&page=1"
@@ -58,3 +57,13 @@ def get_movie_infos_by_id(request, lang_code='fr', id=None):
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
     return JsonResponse({"movie_data": movie_data, "credits_data": credits_data}, safe=False)
+
+def opensubtitles_auth():
+    api_key = os.getenv("OPENSUBTITLES_API_KEY")
+    auth_url = "https://api.opensubtitles.com/api/v1/login"
+    header = {
+        "Content-Type": "application/json",
+        "Api-Key": api_key
+    }
+
+def get_subtitles(request, lang_code='fr'):
