@@ -33,7 +33,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
+  scraper:
+    container_name: scraper
+    build:
+      context: ./scraper
+      dockerfile: Dockerfile
+    expose:
+      - 8000
+    volumes:
+      - ./scraper:/app
+    networks:
+      - hypertube-net
+    depends_on:
+      db:
+        condition: service_healthy
   # backend-user:
   #   container_name: backend-user
   #   build:

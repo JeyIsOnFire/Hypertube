@@ -110,7 +110,7 @@ WSGI_APPLICATION = 'hypertube.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hypertube',
+        'NAME': 'db',
         'USER': 'user',
         'PASSWORD': 'pass',
         'HOST': 'db',
