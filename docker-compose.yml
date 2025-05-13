@@ -48,8 +48,8 @@ services:
   backend-user:
     container_name: backend-user
     build: ./services/backend-user
-    ports:
-      - "6000:6000"
+    expose:
+      - 6000
     env_file:
       - .env
     volumes:
