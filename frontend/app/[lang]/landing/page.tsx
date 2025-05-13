@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState, useEffect } from 'react';
+import React, { use, useState, useEffect, useRef } from 'react';
 import styles from './landing.module.css';
 import Link from 'next/link';
 import { fetchApi } from '@/lib/fetch-api';
@@ -56,43 +56,40 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
     return `hsl(${hue}, 100%, 30%)`;
   }
 
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const winH = window.innerHeight;
-      const docHeight = document.documentElement.scrollHeight;
-  
-      if (scrollTop + winH >= docHeight - 50 && !isFetching) {
-        setIsFetching(true);
-        setPageNum(prev => prev + 1);
-        console.log("Bas de page");
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    const checkInitialScroll = () => {
+  const isFetching = useRef(false);
+
+  const checkIfBottom = () => {
+    const scrollTop = window.scrollY;
     const winH = window.innerHeight;
     const docHeight = document.documentElement.scrollHeight;
 
-    if (winH >= docHeight && !isFetching) {
-      setIsFetching(true);
+    return scrollTop + winH >= docHeight - 1;
+  };
+
+  const tryLoadNextPage = () => {
+    if (!isFetching.current && checkIfBottom()) {
+      isFetching.current = true;
       setPageNum(prev => prev + 1);
-      console.log("Contenu trop court, chargement forcé");
+      console.log("Chargement page suivante");
     }
   };
 
-  checkInitialScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isFetching]);
-
+  // Vérifie au scroll
   useEffect(() => {
-    if (isFetching) {
-      const timer = setTimeout(() => {
-        setIsFetching(false);
-      }, 2000); // à adapter selon la durée de ton fetch
-      return () => clearTimeout(timer);
-    }
-  }, [isFetching]);
+    const handleScroll = () => tryLoadNextPage();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Vérifie aussi après chaque ajout de contenu
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      isFetching.current = false;
+      tryLoadNextPage(); // 👈 Si on est toujours en bas => on recharge
+    }, 500); // Temps fictif de "chargement"
+
+    return () => clearTimeout(timeout);
+  }, [pageNum]);
 
   return (
     <>
