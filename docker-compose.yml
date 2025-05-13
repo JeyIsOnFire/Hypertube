@@ -27,8 +27,11 @@ services:
       - hypertube-net
     environment:
       - NODE_ENV=development
+    env_file:
+      - .env
     stdin_open: true
     tty: true
+
 
   backend-api:
     container_name: backend-api
@@ -88,6 +91,19 @@ services:
     depends_on:
       - postgresql
 
+  backend-scraper:
+    container_name: backend-scraper
+    build: .services/backend-scraper
+    expose:
+      - 8000
+    volumes:
+      - ./services/backend-scraper:/app
+    networks:
+      - hypertube-net
+    # depends_on:
+    #   postgresql:
+    #     condition: service_healthy
+
 networks:
   hypertube-net:
     driver: bridge
@@ -96,3 +112,4 @@ volumes:
   pgdata:
     driver: local
   pgadmin-data:
+    driver: local

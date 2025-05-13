@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import requests
 import random
@@ -5,76 +6,91 @@ import logging
 from django.http import JsonResponse, HttpResponse
 from django.utils.translation import get_language
 from django.db import connection
+from dotenv import load_dotenv
 
-def hello_backend(request):
-    print(request)
-    return JsonResponse({"message":"Le Backend"})
+import re
 
-def display_random_poster(request, lang_code='en'):
-    # Sélectionner 9 titres aléatoires depuis la base de données
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT tconst, primary_title FROM titles ORDER BY RANDOM() LIMIT 9;")
-        random_titles = cursor.fetchall()
+load_dotenv()
 
-    # Appel à l’API OMDb pour obtenir les posters
-    api_key = 'f5ffda2e'
-    posters = []
-    for tconst, title in random_titles:
-        response = requests.get(f"http://www.omdbapi.com/?i={tconst}&apikey={api_key}")
-        if response.status_code == 200:
-            data = response.json()
-            poster_url = data.get('Poster', 'N/A')
-        else:
-            poster_url = 'N/A'
-
-        posters.append({
-            'tconst': tconst,
-            'title': title,
-            'poster_url': poster_url
-        })
-
-    return JsonResponse(posters, safe=False)
-
-def display_query(request, lang_code = get_language()):
-    query = request.GET.get('query', '')
-
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM titles WHERE primary_title LIKE %s LIMIT 10;", [f"%{query}%"])
-        result = cursor.fetchall();
-    
-    return JsonResponse({'received_query': result})
-
-def fetch_movie_data(request, lang_code='en'):
-    api_key = "f79480e4f43a3fae72de354de3e27a0d"
-    token = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmNzk0ODBlNGY0M2EzZmFlNzJkZTM1NGRlM2UyN2EwZCIsIm5iZiI6MTc0NjUzOTc5NS4yNjksInN1YiI6IjY4MWExNTEzZDA1YjI1MTI4Y2M2MzU1MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.FnkH26lSSBoFw_slKP6VGU0HxrnPf0Z_V--Kr0Oe9y8"
-
-    # 1ère requête : Authentification
+def tmdb_auth():
+    api_key = os.getenv("TMDB_API_KEY")
+    token = os.getenv("TMDB_TOKEN")
     auth_url = "https://api.themoviedb.org/3/authentication"
     headers = {
         "accept": "application/json",
         "Authorization": "Bearer " + token
     }
     auth_response = requests.get(auth_url, headers=headers)
-
     if auth_response.status_code != 200:
         return JsonResponse({'error': 'Authentication failed'}, status=auth_response.status_code)
+    return headers
 
+def fetch_with_scraper(request, movie_data):
+        filtered_movies = {
+            'results': []
+        }
+        scraper_url = f"http://scraper:8000/search?query="
+        formatted_for_scrap = []
+        for movie in movie_data['results']:
+            movie_name = movie['original_title']
+            movie_year = movie['release_date'][:4]
+            if movie_name:
+                formatted_for_scrap.append(movie_name + " " + str(movie_year))
+        scrapper_response = requests.get(scraper_url + ",".join(formatted_for_scrap))
+        if scrapper_response.status_code == 200:
+            scrap_data = scrapper_response.json()
+            for movie in movie_data['results']:
+                movie_keyword = movie['original_title'] + " " + str(movie['release_date'][:4])
+                if movie_keyword in scrap_data:
+                    original_title = re.sub(r'[._\-]+', ' ', movie['original_title'].lower())
+                    original_title = re.sub(':', '', original_title)
+                    if original_title in scrap_data[movie_keyword]:
+                        filtered_movies['results'].append(movie)
+        return filtered_movies
 
-    # 2ème requête : Récupérer les films
-    log = logging.getLogger('django')
-
+def fetch_movie_data(request, lang_code='fr'):
+    headers = tmdb_auth()
     movie_url = f"https://api.themoviedb.org/3/search/movie?query={request.GET.get('query', '')}&language={lang_code}&page=1"
-
     movie_response = requests.get(movie_url, headers=headers)
-
     if movie_response.status_code == 200:
-        movie_data = movie_response.json()  # Extraire le JSON de la réponse
+        movie_data = movie_response.json() 
+        filtered_movies = fetch_with_scraper(request, movie_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
-
-    # Retourner la réponse avec les données des films
-    return JsonResponse(movie_data, safe=False)
+    return JsonResponse(filtered_movies, safe=False)
 
 
+def fetch_popular_movies(request, lang_code='fr', pageNum=None):
+    headers = tmdb_auth()
+    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&page={pageNum}"
+    movies_response = requests.get(movies_url, headers=headers)
+    if movies_response.status_code == 200:
+        movies_data = movies_response.json()
+        filtered = fetch_with_scraper(request, movies_data)
+    else:
+        return JsonResponse({'error': 'Failed to fetch movie data'}, status=movies_response.status_code)
+    return JsonResponse(filtered, safe=False)
 
 
+def get_movie_infos_by_id(request, lang_code='fr', id=None):
+    headers = tmdb_auth()
+    movie_url = f"https://api.themoviedb.org/3/movie/{id}?language={lang_code}&page=1"
+    credits_url = f"https://api.themoviedb.org/3/movie/{id}/credits?language={lang_code}&page=1"
+    movie_response = requests.get(movie_url, headers=headers)
+    credits_response = requests.get(credits_url, headers=headers)
+    if movie_response.status_code == 200 and credits_response.status_code == 200:
+        movie_data = movie_response.json()
+        credits_data = credits_response.json()
+    else:
+        return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
+    return JsonResponse({"movie_data": movie_data, "credits_data": credits_data}, safe=False)
+
+def opensubtitles_auth():
+    api_key = os.getenv("OPENSUBTITLES_API_KEY")
+    auth_url = "https://api.opensubtitles.com/api/v1/login"
+    header = {
+        "Content-Type": "application/json",
+        "Api-Key": api_key
+    }
+
+def get_subtitles(request, lang_code='fr'):
