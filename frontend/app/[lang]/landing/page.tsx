@@ -19,6 +19,7 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
 
   const [popularFilms, setPopularFilms] = useState([]);
   const [pageNum, setPageNum] = useState<number>(1);
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -55,21 +56,43 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
     return `hsl(${hue}, 100%, 30%)`;
   }
 
-  const handleScroll = () => {
-    const scrollTop = window.scrollY;
+  
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const winH = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+  
+      if (scrollTop + winH >= docHeight - 50 && !isFetching) {
+        setIsFetching(true);
+        setPageNum(prev => prev + 1);
+        console.log("Bas de page");
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    const checkInitialScroll = () => {
     const winH = window.innerHeight;
     const docHeight = document.documentElement.scrollHeight;
 
-    if (scrollTop + winH >= docHeight - 1) {
+    if (winH >= docHeight && !isFetching) {
+      setIsFetching(true);
       setPageNum(prev => prev + 1);
-      console.log("Bas de page");
+      console.log("Contenu trop court, chargement forcé");
     }
   };
 
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+  checkInitialScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  });
+  }, [isFetching]);
+
+  useEffect(() => {
+    if (isFetching) {
+      const timer = setTimeout(() => {
+        setIsFetching(false);
+      }, 2000); // à adapter selon la durée de ton fetch
+      return () => clearTimeout(timer);
+    }
+  }, [isFetching]);
 
   return (
     <>
