@@ -7,7 +7,7 @@
   font-family: var(--ff-heading);
 }
 
-.background {
+.background, .background::after {
   position: absolute;
   top: 0;
   left: 0;
@@ -18,6 +18,11 @@
   filter: blur(8px);
 }
 
+.background::after {
+  content: "";
+  background: rgba(0, 0, 0, 0.5);
+}
+
 .content {
   position: relative;
   padding: 2rem;
@@ -25,7 +30,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5);
+  /* background: rgba(0, 0, 0, 0.5); */
 }
 
 .content h2 {
