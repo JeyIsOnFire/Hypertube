@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Hypertube DB",
+      "Group": "Servers",
+      "Host": "postgresql",
+      "Port": 5432,
+      "MaintenanceDB": "hypertube-db",
+      "Username": "admin",
+      "SSLMode": "prefer"
+    }
+  }
+}
