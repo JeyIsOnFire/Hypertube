@@ -19,7 +19,6 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
 
   const [popularFilms, setPopularFilms] = useState([]);
   const [pageNum, setPageNum] = useState<number>(1);
-  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -133,4 +132,3 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
 }
 
 export default Landing;
-

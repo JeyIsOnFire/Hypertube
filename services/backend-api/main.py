@@ -2,7 +2,8 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from routers import users#, stream, oauth
+from routers import users, movies
+
 
 
 app = FastAPI()
@@ -10,6 +11,7 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://127.0.0.1",
+    "http://nginx",
 ]
 
 app.add_middleware(
@@ -21,5 +23,6 @@ app.add_middleware(
 )
 
 app.include_router(users.router, prefix="/api")
+app.include_router(movies.router, prefix="/api")
 # app.include_router(stream.router, prefix="/api")
 # app.include_router(oauth.router, prefix="/api")

@@ -32,12 +32,11 @@ services:
     stdin_open: true
     tty: true
 
-
   backend-api:
     container_name: backend-api
     build: ./services/backend-api
-    ports:
-      - "5000:5000"
+    expose:
+      - 5000
     env_file:
       - .env
     volumes:
@@ -60,6 +59,35 @@ services:
       postgresql:
         condition: service_healthy
 
+
+  backend-scraper:
+    container_name: backend-scraper
+    build: ./services/backend-scraper
+    expose:
+      - 8000
+    volumes:
+      - ./services/backend-scraper:/app
+    networks:
+      - hypertube-net
+    # depends_on:
+    #   postgresql:
+    #     condition: service_healthy
+  backend-movies:
+    container_name: backend-movies
+    build: ./services/backend-movies
+    expose:
+      - 7000
+    volumes:
+      - ./services/backend-movies:/app
+    networks:
+      - hypertube-net
+    env_file:
+      - .env
+    # depends_on:
+    #   postgresql:
+    #     condition: service_healthy
+
+
   postgresql:
     container_name: postgresql
     image: postgres:17
@@ -70,7 +98,7 @@ services:
     networks:
       - hypertube-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d hypertube-db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 15s
       timeout: 30s
       retries: 5
@@ -91,18 +119,6 @@ services:
     depends_on:
       - postgresql
 
-  backend-scraper:
-    container_name: backend-scraper
-    build: ./services/backend-scraper
-    expose:
-      - 8000
-    volumes:
-      - ./services/backend-scraper:/app
-    networks:
-      - hypertube-net
-    # depends_on:
-    #   postgresql:
-    #     condition: service_healthy
 
 networks:
   hypertube-net:

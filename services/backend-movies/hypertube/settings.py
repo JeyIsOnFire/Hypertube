@@ -10,6 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
+import dotenv
+
+dotenv.load_dotenv()
+
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 
@@ -23,12 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-h$y)$0us8-w6p*2zcrf$9ksbmpxg_s7h4406zi2xhfiwp8qow8'
+SECRET_KEY = os.getenv("SECRET_KEY_BACKEND_MOVIES")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'backend-api', '82.29.169.227']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'backend-api', '82.29.169.227', 'backend-movies']
 
 # Permettre les requêtes avec les méthodes HTTP spécifiées
 CORS_ALLOW_METHODS = [
@@ -72,7 +77,8 @@ MIDDLEWARE = [
 # à modifier pour limiter l'accès
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4000',
-    'http://localhost',
+    'http://localhost'
+    'http://localhost:5000',
     'http://82.29.169.227',
     'http://82.29.169.227:4000',
 ]
@@ -107,13 +113,14 @@ WSGI_APPLICATION = 'hypertube.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'db',
-        'USER': 'user',
-        'PASSWORD': 'pass',
-        'HOST': 'db',
+        'NAME': os.getenv("POSTGRES_DB"),
+        'USER': os.getenv("POSTGRES_USER"),
+        'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
+        'HOST': os.getenv("POSTGRES_HOST"),
         'PORT': '5432',
     }
 }

@@ -3,6 +3,7 @@ import httpx
 from config import USER_SERVICE_URL
 
 
+
 async def forward_register_request(payload: dict):
     try:
         async with httpx.AsyncClient() as client:
@@ -10,3 +11,4 @@ async def forward_register_request(payload: dict):
                                      json=payload)
     except httpx.RequestError as exc:
         raise Exception(f"Error: {exc}")
+

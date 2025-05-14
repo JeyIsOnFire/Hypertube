@@ -29,7 +29,7 @@ def fetch_with_scraper(request, movie_data):
         filtered_movies = {
             'results': []
         }
-        scraper_url = f"http://scraper:8000/search?query="
+        scraper_url = f"http://backend-scraper:8000/search?query="
         formatted_for_scrap = []
         for movie in movie_data['results']:
             movie_name = movie['original_title']
@@ -93,4 +93,4 @@ def opensubtitles_auth():
         "Api-Key": api_key
     }
 
-def get_subtitles(request, lang_code='fr'):
+# def get_subtitles(request, lang_code='fr'):

@@ -3,6 +3,7 @@ frontend/.next/
 frontend/node_modules/
 frontend/.env.local/
 frontend/.env.prod/
+.next
 sauvegarde.dump
 
 # Byte-compiled / optimized / DLL files
