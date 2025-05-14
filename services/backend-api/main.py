@@ -10,8 +10,8 @@ app = FastAPI()
 
 origins = [
     "http://localhost",
+    "http://localhost:4000", # permet de faire fonctionner le cors pour nextjs voir si on peut suppr a l'avenir
     "http://127.0.0.1",
-    "http://nginx",
 ]
 
 app.add_middleware(
