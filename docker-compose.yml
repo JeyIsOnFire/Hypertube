@@ -93,7 +93,7 @@ services:
 
   backend-scraper:
     container_name: backend-scraper
-    build: .services/backend-scraper
+    build: ./services/backend-scraper
     expose:
       - 8000
     volumes:
