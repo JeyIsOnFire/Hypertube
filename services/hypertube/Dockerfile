@@ -7,17 +7,17 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Étape 3 : Copier les fichiers requirements.txt et installer les dépendances
-COPY backend/requirements.txt /app/
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN apt-get update && apt-get install -y postgresql-client
 
 # Étape 4 : Copier tout le code source dans le container
-COPY backend/hypertube /app/
+COPY ./ /app/
 
 # Étape 5 : Exposer le port 8000 pour Django
-EXPOSE 5000
+EXPOSE 7000
 
 # Étape 6 : Lancer le serveur Django (en mode de développement)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:5000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:7000"]
 

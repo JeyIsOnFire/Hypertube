@@ -32,7 +32,6 @@ services:
     stdin_open: true
     tty: true
 
-
   backend-api:
     container_name: backend-api
     build: ./services/backend-api
@@ -59,6 +58,19 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
+
+  hypertube:
+    container_name: hypertube
+    build: ./services/hypertube
+    expose:
+      - 7000
+    ports:
+      - "7000:7000"
+    networks:
+      - hypertube-net
+    env_file:
+      - .env
+
 
   postgresql:
     container_name: postgresql

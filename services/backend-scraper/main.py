@@ -1,8 +1,11 @@
+import re
+import asyncio
+import httpx
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-
-import re
+from bs4 import BeautifulSoup
 
 app = FastAPI()
  
@@ -19,9 +22,6 @@ app.add_middleware(
     allow_headers=[""],
 )
 
-import asyncio
-import httpx
-from bs4 import BeautifulSoup
 
 LEET_URL = "https://1337x.to"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",

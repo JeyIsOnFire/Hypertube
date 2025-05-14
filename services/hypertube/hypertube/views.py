@@ -29,7 +29,7 @@ def fetch_with_scraper(request, movie_data):
         filtered_movies = {
             'results': []
         }
-        scraper_url = f"http://scraper:8000/search?query="
+        scraper_url = f"http://backend-scraper:8000/search?query="
         formatted_for_scrap = []
         for movie in movie_data['results']:
             movie_name = movie['original_title']
@@ -66,10 +66,10 @@ def fetch_popular_movies(request, lang_code='fr', pageNum=None):
     movies_response = requests.get(movies_url, headers=headers)
     if movies_response.status_code == 200:
         movies_data = movies_response.json()
-        filtered = fetch_with_scraper(request, movies_data)
+        # filtered = fetch_with_scraper(request, movies_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movies_response.status_code)
-    return JsonResponse(filtered, safe=False)
+    return JsonResponse(movies_data, safe=False)
 
 
 def get_movie_infos_by_id(request, lang_code='fr', id=None):
@@ -93,4 +93,3 @@ def opensubtitles_auth():
         "Api-Key": api_key
     }
 
-def get_subtitles(request, lang_code='fr'):
