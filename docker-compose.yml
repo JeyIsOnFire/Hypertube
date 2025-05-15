@@ -1,104 +1,104 @@
-
 services:
-  frontend:
-    container_name: frontend
-    build: ./frontend
-    ports:
-      - "4000:4000"
-    volumes:
-      - ./frontend:/app  # Monte les fichiers locaux dans le conteneur pour hot reload
-      - /app/node_modules  # Assure que les modules installés sont persistants
-    networks:
-      - hypertube-net
-    environment:
-      - NODE_ENV=development
-    stdin_open: true  # Permet une interaction continue
-    tty: true  # Nécessaire pour le hot reload
-
-  backend:
-    container_name: backend
-    build:
-      context: .
-      dockerfile: ./backend/Dockerfile
-    ports:
-      - "5000:5000"
-    env_file:
-      - .env
-    volumes:
-      - ./backend/hypertube:/app
-    networks:
-      - hypertube-net
-    depends_on:
-      db:
-        condition: service_healthy
-
-  backend-user:
-    container_name: backend-user
-    build:
-      context: .
-      dockerfile: ./auth/Dockerfile
-    ports:
-      - "6000:6000"
-    env_file:
-      - .env
-    volumes:
-      - ./backend/hypertube:/app
-    networks:
-      - hypertube-net
-    depends_on:
-      db:
-        condition: service_healthy
-
-  # backend-api:
-  #   container_name: backend-api
-  #   build:
-  #     context: .
-  #     dockerfile: ./auth/Dockerfile
-  #   ports:
-  #     - "7000:7000"
-  #   env_file:
-  #     - .env
-  #   volumes:
-  #     - ./backend/hypertube:/app
-  #   networks:
-  #     - hypertube-net
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #
   nginx:
-    container_name: server
-    image: nginx:alpine
+    container_name: nginx  
+    image: nginx:latest
     ports:
-      - "8880:8880"
+      - "8880:80"
       - "8443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - .nginx/certs:/etc/nginx/certs
+      - ./services/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./services/nginx/ssl:/etc/ssl
     networks:
       - hypertube-net
     depends_on:
       - frontend
-      - backend
+      - backend-api
+      - backend-user
 
-  db:
-    container_name: db
-    build:
-      context: ./db
-      dockerfile: Dockerfile
+  frontend:
+    container_name: frontend
+    build: ./services/frontend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./services/frontend:/app
+      - /app/node_modules #il faut le traiter avec les variable d'env sinon pb de droits
+    networks:
+      - hypertube-net
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+
+  backend-api:
+    container_name: backend-api
+    build: ./services/backend-api
+    expose:
+      - 5000
+    env_file:
+      - .env
+    volumes:
+      - ./services/backend-api:/app
+    networks:
+      - hypertube-net
+
+  backend-user:
+    container_name: backend-user
+    build: ./services/backend-user
+    expose:
+      - 6000
+    env_file:
+      - .env
+    volumes:
+      - ./services/backend-user:/app
+    networks:
+      - hypertube-net
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+
+  backend-scraper:
+    container_name: backend-scraper
+    build: ./services/backend-scraper
+    expose:
+      - 8000
+    volumes:
+      - ./services/backend-scraper:/app
+    networks:
+      - hypertube-net
+    # depends_on:
+    #   postgresql:
+    #     condition: service_healthy
+  backend-movies:
+    container_name: backend-movies
+    build: ./services/backend-movies
+    expose:
+      - 7000
+    volumes:
+      - ./services/backend-movies:/app
+    networks:
+      - hypertube-net
+    env_file:
+      - .env
+    # depends_on:
+    #   postgresql:
+    #     condition: service_healthy
+
+
+  postgresql:
+    container_name: postgresql
     image: postgres:17
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # - ./db/script.sh:/docker-entrypoint-initdb.d/01_script.sh
-      # - ./backend/hypertube/imdb_data/data:/data
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: hypertube
+    env_file:
+      - .env
     networks:
       - hypertube-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 15s
       timeout: 30s
       retries: 5
@@ -109,32 +109,16 @@ services:
     image: dpage/pgadmin4:latest
     ports:
       - "5050:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
-      PGADMIN_DEFAULT_PASSWORD: "admin"
+    env_file:
+      - .env
+    volumes:
+      - ./services/pgadmin/servers.json:/pgadmin4/servers.json
+      - pgadmin-data:/var/lib/pgadmin
     networks:
       - hypertube-net
     depends_on:
-      - db
+      - postgresql
 
-  # redis:
-  #   container_name: redis
-  #   image: redis:alpine
-  #   ports:
-  #     - "6380:6379"
-  #   networks:
-  #     - hypertube-net
-
-
-  # streamer:
-  #   container_name: stream
-  #   build: ./streamer  # Si tu as un Dockerfile dans le répertoire ./streamer
-  #   volumes:
-  #     - ./videos:/app/videos
-  #   networks:
-  #     - hypertube-net
-  #   depends_on:
-  #     - backend
 
 networks:
   hypertube-net:
@@ -143,4 +127,5 @@ networks:
 volumes:
   pgdata:
     driver: local
-
+  pgadmin-data:
+    driver: local
