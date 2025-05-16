@@ -1,10 +1,10 @@
 import Landing from './landing/page';
 
-const Home = ({ params }: { params: { lang: string }}) => {
+const Home = () => {
 
   return (
     <div>
-      <Landing params={params}/>
+      <Landing />
     </div>
   );
 };

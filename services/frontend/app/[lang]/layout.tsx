@@ -1,4 +1,3 @@
-import { use } from 'react';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -29,23 +28,17 @@ export default function RootLayout({
   params: { lang: string };
 }) {
 
-  const { lang } = use(params);
+  const { lang } = params;
   const t = getTranslations(lang);
 
   return (
     <html lang={lang}>
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Monoton&family=Oswald:wght@400;700&family=Source+Sans+Pro:wght@300;400&display=swap"
-          rel="stylesheet"
-        />
-      </head>
 
       {/* ------------------------------- BODY ----------------------------*/}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header lang={lang} />
+        <Header lang={lang as 'en' | 'fr'} />
         {children}
         <footer className={styles.footer}>{t.rightsreserved}</footer>
       </body>

@@ -56,9 +56,11 @@ RUN npm install
 # Copier tout le reste (sera monté comme volume en dev, donc pas nécessaire mais utile si pas monté)
 COPY . .
 
+RUN npm run build
+
 # Exposer le port utilisé par Next.js
 EXPOSE 4000
 
 # Lancer Next.js en mode dev (avec hot reload)
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]
 

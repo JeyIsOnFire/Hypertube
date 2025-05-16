@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_HOSTNAME: process.env.NEXT_PUBLIC_HOSTNAME,
   }
-
 };
 
 module.exports = nextConfig;
