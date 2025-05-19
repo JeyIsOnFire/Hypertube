@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import { loadEnvConfig } from "@next/env";
+
+const envFileDir = process.cwd() + "/../../";
+loadEnvConfig(envFileDir);
+
 
 const nextConfig: NextConfig = {
 	middleware: true,
