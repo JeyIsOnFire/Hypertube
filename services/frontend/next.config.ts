@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
-import { loadEnvConfig } from "@next/env";
 
-const envFileDir = process.cwd() + "/../../";
-loadEnvConfig(envFileDir);
-
-
+console.log("NEXT_PUBLIC_HOSTNAME", process.env.NEXT_PUBLIC_HOSTNAME);
 const nextConfig: NextConfig = {
 	middleware: true,
   env: {
@@ -13,4 +9,3 @@ const nextConfig: NextConfig = {
 };
 
 module.exports = nextConfig;
-//export default nextConfig;
