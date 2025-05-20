@@ -24,8 +24,11 @@ endif
 
 .PHONY: all fclean clean stop down start re restart create-dir resume
 
-all: create-dir
+all: create-dir down
 	@bash -c 'source .env && exec docker compose up --build -d'
+
+prod: create-dir down
+	@bash -c 'source .env && exec docker compose -f ./docker-compose.yml -f ./docker-compose.prod.yml up --build -d'
 
 fclean: stop clean
 	@echo "${YELLOW}Withdrawal of Docker images...${RESET}"

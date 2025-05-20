@@ -1,31 +1,31 @@
-# FROM node:22-alpine as builder
-# WORKDIR /app
-# # Set environment variables
-# ARG NEXT_PUBLIC_HOSTNAME
-# ARG NODE_ENV
-# ENV NODE_ENV=${NODE_ENV:-production}
-# ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
-# # Install dependencies only when needed
-# COPY package*.json ./
-# # Install production dependencies
-# RUN npm install
-# # Copy the rest of the application code
-# COPY . .
+FROM node:22-alpine as builder
+WORKDIR /app
+# Set environment variables
+ARG NEXT_PUBLIC_HOSTNAME
+ARG NODE_ENV
+ENV NODE_ENV=${NODE_ENV:-production}
+ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+# Install dependencies only when needed
+COPY package*.json ./
+# Install production dependencies
+RUN npm install --include=dev
+# Copy the rest of the application code
+COPY . .
 # RUN npm run build
-# # RUN if [ "$NODE_ENV" = "production" ]; then npm run build; fi
+RUN if [ "$NODE_ENV" = "production" ]; then npm run build; fi
 
 
-# FROM node:22-alpine as runner
-# WORKDIR /app
-# # Set environment variables
-# ARG NEXT_PUBLIC_HOSTNAME
-# ARG NODE_ENV
-# ENV NODE_ENV=${NODE_ENV:-production}
-# ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+FROM node:22-alpine as runner
+WORKDIR /app
+# Set environment variables
+ARG NEXT_PUBLIC_HOSTNAME
+ARG NODE_ENV
+ENV NODE_ENV=${NODE_ENV:-production}
+ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
 
-# COPY --from=builder /app /app
+COPY --from=builder /app /app
 
-# CMD sh -c 'if [ "$NODE_ENV" = "production" ]; then npm start; else npm run dev; fi'
+CMD sh -c 'if [ "$NODE_ENV" = "production" ]; then npm start; else npm run dev; fi'
 
 #############################################################
 #                                                           #
@@ -34,48 +34,48 @@
 #############################################################
 
 # Étape 1 : build de l'app Next.js
-FROM node:18-alpine AS builder
+# FROM node:18-alpine AS builder
 
-ARG NEXT_PUBLIC_HOSTNAME
-ARG NODE_ENV
+# ARG NEXT_PUBLIC_HOSTNAME
+# ARG NODE_ENV
 
-ENV NODE_ENV=${NODE_ENV:-production}
-ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+# ENV NODE_ENV=${NODE_ENV:-production}
+# ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
 
-WORKDIR /app
+# WORKDIR /app
 
-# Copier les fichiers nécessaires
-COPY package*.json ./
-RUN npm install
+# # Copier les fichiers nécessaires
+# COPY package*.json ./
+# RUN npm install --include=dev
 
-COPY . .
+# COPY . .
 
-# Build en mode production
-RUN npm run build
+# # Build en mode production
+# RUN npm run build
 
-# Étape 2 : image finale optimisée
-FROM node:18-alpine AS runner
-
-
-ARG NEXT_PUBLIC_HOSTNAME
-ARG NODE_ENV
-
-ENV NODE_ENV=${NODE_ENV:-production}
-ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+# # Étape 2 : image finale optimisée
+# FROM node:18-alpine AS runner
 
 
-WORKDIR /app
-# Copie seulement le nécessaire pour le runtime
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+# ARG NEXT_PUBLIC_HOSTNAME
+# ARG NODE_ENV
 
-# Exposer le port 3000
-EXPOSE 4000
+# ENV NODE_ENV=${NODE_ENV:-production}
+# ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
 
-# Commande de démarrage
-CMD ["npm", "run", "start"]
+
+# WORKDIR /app
+# # Copie seulement le nécessaire pour le runtime
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/.next ./.next
+# COPY --from=builder /app/node_modules ./node_modules
+# COPY --from=builder /app/package.json ./package.json
+
+# # Exposer le port 3000
+# EXPOSE 4000
+
+# # Commande de démarrage
+# CMD ["npm", "run", "start"]
 
 #############################################################
 #                                                           #

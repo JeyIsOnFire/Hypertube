@@ -21,12 +21,12 @@ services:
       context: ./services/frontend
       dockerfile: Dockerfile
       args:
-        NODE_ENV: production
+        NODE_ENV: development
         NEXT_PUBIC_HOSTNAME: ${NEXT_PUBLIC_HOSTNAME}
-    ports:
-      - "4000:4000"
+    expose:
+      - 4000
     volumes:
-      # - ./services/frontend:/app
+      - ./services/frontend:/app
       - /app/node_modules #il faut le traiter avec les variable d'env sinon pb de droits
     networks:
       - hypertube-net
