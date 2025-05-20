@@ -1,3 +1,32 @@
+# FROM node:22-alpine as builder
+# WORKDIR /app
+# # Set environment variables
+# ARG NEXT_PUBLIC_HOSTNAME
+# ARG NODE_ENV
+# ENV NODE_ENV=${NODE_ENV:-production}
+# ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+# # Install dependencies only when needed
+# COPY package*.json ./
+# # Install production dependencies
+# RUN npm install
+# # Copy the rest of the application code
+# COPY . .
+# RUN npm run build
+# # RUN if [ "$NODE_ENV" = "production" ]; then npm run build; fi
+
+
+# FROM node:22-alpine as runner
+# WORKDIR /app
+# # Set environment variables
+# ARG NEXT_PUBLIC_HOSTNAME
+# ARG NODE_ENV
+# ENV NODE_ENV=${NODE_ENV:-production}
+# ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+
+# COPY --from=builder /app /app
+
+# CMD sh -c 'if [ "$NODE_ENV" = "production" ]; then npm start; else npm run dev; fi'
+
 #############################################################
 #                                                           #
 #                        PRODUCTION                         #

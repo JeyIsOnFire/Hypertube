@@ -122,7 +122,7 @@ const Landing = () => {
               href={`/films/${film['id']}`}
             >
               <div className={styles.info}>
-                <Image src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} />
+                <Image src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} width={1080} height={1920}/>
                 <div style={{ padding: '0.2rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     <h3>{film.title}</h3>

@@ -25,9 +25,9 @@ services:
         NEXT_PUBIC_HOSTNAME: ${NEXT_PUBLIC_HOSTNAME}
     ports:
       - "4000:4000"
-    # volumes:
-    #   - ./services/frontend:/app
-    #   - /app/node_modules #il faut le traiter avec les variable d'env sinon pb de droits
+    volumes:
+      # - ./services/frontend:/app
+      - /app/node_modules #il faut le traiter avec les variable d'env sinon pb de droits
     networks:
       - hypertube-net
     stdin_open: true

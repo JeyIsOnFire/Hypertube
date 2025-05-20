@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Ignorer les fichiers statiques et l'API
-  if (PUBLIC_FILE.test(pathname) || pathname.startsWith('/api')) {
+  if (PUBLIC_FILE.test(pathname) || pathname.startsWith('/api') || pathname.startsWith('/_next')) {
     return NextResponse.next();
   }
 
