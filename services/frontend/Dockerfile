@@ -1,4 +1,4 @@
-FROM node:22-alpine as builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 # Set environment variables
 ARG NEXT_PUBLIC_HOSTNAME
@@ -15,7 +15,7 @@ COPY . .
 RUN if [ "$NODE_ENV" = "production" ]; then npm run build; fi
 
 
-FROM node:22-alpine as runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 # Set environment variables
 ARG NEXT_PUBLIC_HOSTNAME
