@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponse
 from django.utils.translation import get_language
 from django.db import connection
 from dotenv import load_dotenv
+from urllib.parse import quote
 
 import re
 
@@ -35,7 +36,7 @@ def fetch_with_scraper(request, movie_data):
             movie_name = movie['original_title']
             movie_year = movie['release_date'][:4]
             if movie_name:
-                formatted_for_scrap.append(movie_name + " " + str(movie_year))
+                formatted_for_scrap.append(quote(movie_name + " " + str(movie_year)))
         scrapper_response = requests.get(scraper_url + ",".join(formatted_for_scrap))
         if scrapper_response.status_code == 200:
             scrap_data = scrapper_response.json()
@@ -66,7 +67,7 @@ def fetch_popular_movies(request, lang_code='fr', pageNum=None):
     movies_response = requests.get(movies_url, headers=headers)
     if movies_response.status_code == 200:
         movies_data = movies_response.json()
-        # filtered = fetch_with_scraper(request, movies_data)
+        filtered = fetch_with_scraper(request, movies_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movies_response.status_code)
     return JsonResponse(movies_data, safe=False)
