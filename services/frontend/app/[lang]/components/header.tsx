@@ -7,15 +7,20 @@ import translations from '@/locales';
 import { fetchApi } from '@/lib/fetch-api';
 import Link from 'next/link';
 import Burger from '../components/burger';
+import { Monoton } from 'next/font/google';
+
+const monoton = Monoton({ subsets: ['latin'], weight: '400' });
+
 
 type HeaderProps = {
   lang: 'fr' | 'en';
 };
 
-const Header: React.FC<HeaderProps> = ({ lang }) => {
+const Header = ({ lang }: HeaderProps) => {
 
   const [query, setQuery] = useState<string>("");
   const [response, setResponse] = useState(null); 
+
   const resultRef = useRef<HTMLDivElement>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const t = translations[lang];
@@ -89,14 +94,14 @@ const Header: React.FC<HeaderProps> = ({ lang }) => {
               <h1>HYPERTUBE</h1>
             </div>
             <div className={styles.burger}>
-              <Burger />
+              <Burger lang={lang}/>
             </div>
           </div>
         </>
       ) : (
         <>
           <LanguageSwitcher />
-          <div className={styles.top}>
+          <div className={`${monoton.className} ${styles.top}`}>
             <Link href="/"><h1>HYPERTUBE</h1></Link>
           </div>
 

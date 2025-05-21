@@ -17,12 +17,15 @@ type Film = {
   vote_count: number;
 }
 
-const Landing = () => {
-  let lang = 'en';
+type HeaderProps = {
+  lang: 'fr' | 'en';
+}
+
+const Landing = ({ lang }: HeaderProps) => {
 
   const [popularFilms, setPopularFilms] = useState<Film[]>([]);
   const [pageNum, setPageNum] = useState<number>(1);
-
+  const t = translations[lang];
   const isFetching = useRef(false);
 
   const checkIfBottom = useCallback(() => {
@@ -89,21 +92,12 @@ const Landing = () => {
   const pathname = usePathname();
   if (!pathname)  return null;
 
-  const t = translations[lang as 'fr' | 'en'];
-  if (!t) {
-    console.error(`Missing translations for lang: ${lang}`);
-    return null;
-  }
-  lang = pathname.split('/')[1];
-
 
   const getColorFromNote = (note: number) => {
     const clampedNote = Math.max(0, Math.min(note, 10)); 
     const hue = (clampedNote / 10) * 120;
     return `hsl(${hue}, 100%, 30%)`;
   }
-
-
 
   return (
     <>

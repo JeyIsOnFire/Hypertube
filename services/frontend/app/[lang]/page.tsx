@@ -1,12 +1,12 @@
 import Landing from './landing/page';
 
-const Home = () => {
+export default async function Home({ params }) {
 
+  const { lang } = await params;
   return (
     <div>
-      <Landing />
+      <Landing lang={lang}/>
     </div>
   );
 };
 
-export default Home;
