@@ -1,0 +1,7 @@
+services:
+  frontend:
+    volumes:
+      []
+    build: 
+      args:
+        - NODE_ENV=production

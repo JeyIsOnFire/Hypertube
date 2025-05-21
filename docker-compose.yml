@@ -1,48 +1,36 @@
 services:
   nginx:
-    container_name: nginx  
-    image: nginx:latest
+    build: 
+      context: ./services/nginx
+      dockerfile: Dockerfile
+      args:
+        DOMAIN_NAME: ${DOMAIN_NAME}
+    container_name: nginx
     ports:
-      - "8880:80"
       - "8443:443"
-    volumes:
-      - ./services/nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./services/nginx/ssl:/etc/ssl
     networks:
       - hypertube-net
     depends_on:
       - frontend
-      - backend-api
       - backend-user
 
   frontend:
     container_name: frontend
-    build: ./services/frontend
-    ports:
-      - "4000:4000"
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+        NEXT_PUBLIC_HOSTNAME: ${NEXT_PUBLIC_HOSTNAME}
+    expose:
+      - 4000
     volumes:
       - ./services/frontend:/app
-      - /app/node_modules #il faut le traiter avec les variable d'env sinon pb de droits
+      - /app/node_modules
     networks:
       - hypertube-net
-    environment:
-      - NODE_ENV=development
-    env_file:
-      - .env
     stdin_open: true
     tty: true
-
-  backend-api:
-    container_name: backend-api
-    build: ./services/backend-api
-    expose:
-      - 5000
-    env_file:
-      - .env
-    volumes:
-      - ./services/backend-api:/app
-    networks:
-      - hypertube-net
 
   backend-user:
     container_name: backend-user
@@ -72,6 +60,7 @@ services:
     # depends_on:
     #   postgresql:
     #     condition: service_healthy
+
   backend-movies:
     container_name: backend-movies
     build: ./services/backend-movies
@@ -86,7 +75,6 @@ services:
     # depends_on:
     #   postgresql:
     #     condition: service_healthy
-
 
   postgresql:
     container_name: postgresql
@@ -118,7 +106,6 @@ services:
       - hypertube-net
     depends_on:
       - postgresql
-
 
 networks:
   hypertube-net:
