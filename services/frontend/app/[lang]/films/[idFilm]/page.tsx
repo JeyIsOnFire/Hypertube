@@ -98,6 +98,8 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
             src={`https://image.tmdb.org/t/p/w300${movieData["movie_data"].poster_path}`}
             alt={`Affiche de ${movieData["movie_data"].original_title}`}
             className={styles.poster}
+            width={200}
+            height={400}
           />
           <ul className={styles.details}>
             <li>
