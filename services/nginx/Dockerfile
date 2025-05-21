@@ -12,5 +12,7 @@ RUN apk add openssl && \
 
         
 COPY ./default.conf /etc/nginx/conf.d/default.conf
-RUN sed -i "/server_name localhost;/c\server_name ${DOMAIN_NAME};" /etc/nginx/conf.d/default.conf
+
+RUN sed -i "s|localhost|${DOMAIN_NAME}|g" /etc/nginx/conf.d/default.conf
+
 CMD ["nginx", "-g", "daemon off;"]
