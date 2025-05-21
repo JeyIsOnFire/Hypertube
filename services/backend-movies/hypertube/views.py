@@ -62,14 +62,14 @@ def fetch_movie_data(request, lang_code='fr'):
 
 def fetch_popular_movies(request, lang_code='fr', pageNum=None):
     headers = tmdb_auth()
-    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&page={pageNum}"
+    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&include_adult=false&page={pageNum}"
     movies_response = requests.get(movies_url, headers=headers)
     if movies_response.status_code == 200:
         movies_data = movies_response.json()
-        filtered = fetch_with_scraper(request, movies_data)
+        # filtered = fetch_with_scraper(request, movies_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movies_response.status_code)
-    return JsonResponse(filtered, safe=False)
+    return JsonResponse(movies_data, safe=False)
 
 
 def get_movie_infos_by_id(request, lang_code='fr', id=None):

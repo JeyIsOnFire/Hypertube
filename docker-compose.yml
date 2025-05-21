@@ -4,7 +4,7 @@ services:
       context: ./services/nginx
       dockerfile: Dockerfile
       args:
-        DOMAIN_NAME: 10.13.1.4
+        DOMAIN_NAME: ${DOMAIN_NAME}
     container_name: nginx
     ports:
       - "8443:443"
