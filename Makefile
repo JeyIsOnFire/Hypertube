@@ -30,28 +30,11 @@ all: create-dir down
 prod: create-dir down
 	@bash -c 'source .env && exec docker compose -f ./docker-compose.yml -f ./docker-compose.prod.yml up --build -d'
 
-fclean: stop clean
-	@echo "${YELLOW}Withdrawal of Docker images...${RESET}"
-	@docker rmi -f my_app postgres:17 dpage/pgadmin4 busybox || true
-	@echo "${GREEN}Images deleted.${RESET}"
-
-fclean2: stop clean
-	@echo "${YELLOW}Removing containers, images, and volumes from docker-compose...${RESET}"
-	@docker compose down --volumes --rmi all || echo "${RED}Could not fully clean with docker compose down${RESET}"
-	@docker rmi -f busybox || echo "${CYAN}busybox image not found or already removed.${RESET}"
-	@echo "${GREEN}All docker-compose resources have been removed.${RESET}"
-
 stop:
 	@docker compose stop
 
 down:
 	@docker compose down -v
-
-start: create-dir
-	@bash -c 'source .env && docker compose up -d'
-	@echo "${BLUE}Waiting for my_app...${RESET}"
-	@until docker ps | grep -q "my_app"; do sleep 1; done
-	@docker exec -it my_app bash
 
 resume:
 	@echo "${BLUE}Restarting all stopped containers...${RESET}"
@@ -101,3 +84,9 @@ clean:
 	@echo "${GREEN}Complete cleaning finished.${RESET}"
 
 re: clean fclean all
+
+fclean: stop clean
+	@echo "${YELLOW}Removing containers, images, and volumes from docker-compose...${RESET}"
+	@docker compose down --volumes --rmi all --remove-orphans || echo "${RED}Could not fully clean with docker compose down${RESET}"
+	@docker rmi -f busybox || echo "${CYAN}busybox image not found or already removed.${RESET}"
+	@echo "${GREEN}All docker-compose resources have been removed.${RESET}"
