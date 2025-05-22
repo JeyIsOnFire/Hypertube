@@ -54,10 +54,10 @@ def fetch_movie_data(request, lang_code='fr'):
     movie_response = requests.get(movie_url, headers=headers)
     if movie_response.status_code == 200:
         movie_data = movie_response.json() 
-        filtered_movies = fetch_with_scraper(request, movie_data)
+        # filtered_movies = fetch_with_scraper(request, movie_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
-    return JsonResponse(filtered_movies, safe=False)
+    return JsonResponse(movie_data, safe=False)
 
 
 def fetch_popular_movies(request, lang_code='fr', pageNum=None):

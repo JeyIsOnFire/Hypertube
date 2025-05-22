@@ -8,6 +8,7 @@ import { fetchApi } from '@/lib/fetch-api';
 import Link from 'next/link';
 import Burger from '../components/burger';
 import { Monoton } from 'next/font/google';
+import { useRouter } from 'next/navigation';
 
 const monoton = Monoton({ subsets: ['latin'], weight: '400' });
 
@@ -18,10 +19,12 @@ type HeaderProps = {
 
 const Header = ({ lang }: HeaderProps) => {
 
+  const router = useRouter();
   const [query, setQuery] = useState<string>("");
   const [response, setResponse] = useState(null); 
 
   const resultRef = useRef<HTMLDivElement>(null);
+  const boutonRef = useRef<HTMLButtonElement>(null);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const t = translations[lang];
   const [isMobile, setIsMobile] = useState(false);
@@ -43,7 +46,8 @@ const Header = ({ lang }: HeaderProps) => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (resultRef.current && !resultRef.current.contains(event.target as Node)) {
+      if (event.target !== boutonRef.current && resultRef.current && !resultRef.current.contains(event.target as Node)) {
+        setIsSearching(false);
         setResponse(null);
       }
     }
@@ -75,10 +79,18 @@ const Header = ({ lang }: HeaderProps) => {
   const toggleSearch = () => {
     setIsSearching(!isSearching);
   }
+  const handleSearch = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push(`/searchResults/${query}`);
+    console.log('clicked', query);
+    setIsSearching(false);
+    setResponse(null);
+  }
 
   return (
     <>
       <header className={styles.header}>
+      {/*----------------------------- BURGER -----------------------------*/}
       {isMobile ? (
         <>
           <div className={styles.headerContainer}>
@@ -102,7 +114,7 @@ const Header = ({ lang }: HeaderProps) => {
         <>
           <LanguageSwitcher />
           <div className={`${monoton.className} ${styles.top}`}>
-            <Link href="/"><h1>HYPERTUBE</h1></Link>
+            <h1><Link href="/">HYPERTUBE</Link></h1>
           </div>
 
           <nav className={styles.nav}>
@@ -125,14 +137,25 @@ const Header = ({ lang }: HeaderProps) => {
       )}
       </header>
 
+      {/*----------------------------- SEARCH BAR -----------------------------*/}
       <div className={`overflow-hidden ${isSearching ? styles.searchBarOpened : 'max-h-0'}`}>
         <svg  className={styles.searchIcon2} xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 50 50" width="50px" height="50px">
           <path d="M 21 3 C 11.601563 3 4 10.601563 4 20 C 4 29.398438 11.601563 37 21 37 C 24.355469 37 27.460938 36.015625 30.09375 34.34375 L 42.375 46.625 L 46.625 42.375 L 34.5 30.28125 C 36.679688 27.421875 38 23.878906 38 20 C 38 10.601563 30.398438 3 21 3 Z M 21 7 C 28.199219 7 34 12.800781 34 20 C 34 27.199219 28.199219 33 21 33 C 13.800781 33 8 27.199219 8 20 C 8 12.800781 13.800781 7 21 7 Z"/>
         </svg>
-        <input onChange={(e) => setQuery(e.target.value)} className={styles.searchInput} type="text" placeholder={t.search} />
+        <div className={styles.searchInputContainer}>
+          <input onChange={(e) => setQuery(e.target.value)} className={styles.searchInput} type="text" placeholder={t.search}>
+          </input>
+          <Link 
+            // ref={boutonRef}
+            // onClick={handleSearch}
+            href={`/searchResults/${query}`}
+            className={styles.searchButton}>{t.searchButton}
+          </Link>
+        </div>
       </div>
 
-      {response && (() => {
+      {/*----------------------------- SEARCH RESULTS -----------------------------*/}
+      {response && isSearching && (() => {
 
        let parsed;
        if (typeof response === "string") {
@@ -148,14 +171,13 @@ const Header = ({ lang }: HeaderProps) => {
          console.error("Unexpected response format:", response);
          return null;
    }
-        console.log("JSON", parsed);
         if (Array.isArray(parsed) && parsed.length > 0) {
           return (
             <div className={styles.results} ref={resultRef}>
               <div className={styles.filmList}>
                 {parsed.slice(0, 10).map((film, index: number) => (
                   <Link
-                    onClick={()=>setResponse(null)}
+                    onClick={()=> { setResponse(null); setIsSearching(false) }}
                     key={index}
                     href={`/films/${film['id']}`}
                     className={styles.filmCard}

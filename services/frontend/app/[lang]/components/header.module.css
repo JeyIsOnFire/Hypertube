@@ -81,13 +81,35 @@
   animation: slideDown 0.3s ease-in;
 }
 
-
+.searchInputContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
 
 .searchIcon2 {
   width: 1.1rem;
   margin-left: 20px;
   margin-right: 10px;
   fill: var(--dark);
+}
+
+.searchButton {
+  background-image: linear-gradient(to right, var(--mint) 0%, var(--orange)  51%, var(--mint)  100%);
+  margin-right: 1rem;
+  padding: 7px 10px;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: var(--dark);
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+
+.searchButton:hover {
+  background-position: right center; /* change the direction of the change here */
+  color: var(--beige);
+  text-decoration: none;
 }
 
 /* ------------------------- SEARCH BAR ----------------------- */
@@ -102,6 +124,14 @@
   max-height: 50%;
   z-index: 3000;   
   overflow: scroll;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.results::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
  
 @media (max-width: 600px) {
