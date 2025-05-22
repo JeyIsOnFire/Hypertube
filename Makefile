@@ -22,7 +22,7 @@ else
 	APP_VOLUME := $(HOME)/42/Docker_volume/app
 endif
 
-.PHONY: all fclean clean stop down start re restart create-dir resume
+.PHONY: all fclean clean stop down re restart create-dir resume
 
 all: create-dir down
 	@bash -c 'source .env && exec docker compose up --build -d'
@@ -37,9 +37,9 @@ down:
 	@docker compose down -v
 
 resume:
-	@echo "${BLUE}Restarting all stopped containers...${RESET}"
+	@printf "${BLUE}Restarting all stopped containers...${RESET}\n"
 	@docker ps -a -f "status=exited" --format '{{.Names}}' | xargs -r docker start
-	@echo "${GREEN}All previously stopped containers have been restarted.${RESET}"
+	@printf "${GREEN}All previously stopped containers have been restarted.${RESET}\n"
 
 re: clean fclean all
 
@@ -51,39 +51,39 @@ restart:
 create-dir:
 	@if [ ! -d "$(DB_VOLUME)" ] || [ ! -d "$(APP_VOLUME)" ]; then \
 		mkdir -p $(DB_VOLUME) $(APP_VOLUME); \
-		echo "${BLUE}Bind mounts created (only if necessary):${RESET}"; \
-		echo "  - $(DB_VOLUME)"; \
-		echo "  - $(APP_VOLUME)"; \
+		printf "${BLUE}Bind mounts created (only if necessary):${RESET}\n";\
+		printf "  - $(DB_VOLUME)\n"; \
+		printf "  - $(APP_VOLUME)\n"; \
 	fi
 
 env:
-	@echo "${BLUE}Updating .env variables based on environment...${RESET}"
+	@printf "${BLUE}Updating .env variables based on environment...${RESET}\n"
 	@( grep -q '^APP_VOLUME=' .env && sed -i 's|^APP_VOLUME=.*|APP_VOLUME=$(APP_VOLUME)|' .env || echo "APP_VOLUME=$(APP_VOLUME)" >> .env )
 	@( grep -q '^DB_VOLUME=' .env && sed -i 's|^DB_VOLUME=.*|DB_VOLUME=$(DB_VOLUME)|' .env || echo "DB_VOLUME=$(DB_VOLUME)" >> .env )
-	@echo "${GREEN}.env file updated.${RESET}";
+	@printf "${GREEN}.env file updated.${RESET}"\n;
+
+re: clean fclean all
 
 clean:
-	@echo "${YELLOW}Cleaning PostgreSQL DB...${RESET}"
+	@printf "${YELLOW}Cleaning PostgreSQL DB...${RESET}\n"
 	@if docker container inspect my_postgres > /dev/null 2>&1; then \
 		if docker ps -q -f name=my_postgres | grep -q .; then \
-			echo "${BLUE}Container my_postgres is running. Withdrawal by docker exec.${RESET}"; \
+			printf "${BLUE}Container my_postgres is running. Withdrawal by docker exec.${RESET}\n"; \
 			docker exec my_postgres bash -c "rm -rf /var/lib/postgresql/data/*" || echo "${RED}Failure of the withdrawal by container${RESET}"; \
 		else \
-			echo "${CYAN}Container my_postgres exists but is not running. Temporary start.${RESET}"; \
+			printf "${CYAN}Container my_postgres exists but is not running. Temporary start.${RESET}\n"; \
 			docker start my_postgres > /dev/null; \
 			sleep 3; \
 			docker exec my_postgres bash -c "rm -rf /var/lib/postgresql/data/*" || echo "${RED}Failure after starting.${RESET}"; \
-			echo "${BLUE}Stopping my_postgres container.${RESET}"; \
+			printf "${BLUE}Stopping my_postgres container.${RESET}\n"; \
 			docker stop my_postgres > /dev/null; \
 		fi \
 	else \
-		echo "${RED}Container my_postgres does not exist. Skipping container-based cleaning.${RESET}"; \
+		printf "${RED}Container my_postgres does not exist. Skipping container-based cleaning.${RESET}\n"; \
 	fi
-	@echo "${MAGENTA}Final check with Busybox to clean bind mounted volume...${RESET}"
-	@docker run --rm -v $(DB_VOLUME):/data busybox sh -c "rm -rf /data/*" || echo "${RED}Failure using Busybox${RESET}"
-	@echo "${GREEN}Complete cleaning finished.${RESET}"
-
-re: clean fclean all
+	@printf "${MAGENTA}Final check with Busybox to clean bind mounted volume...${RESET}\n"
+	@docker run --rm -v $(DB_VOLUME):/data busybox sh -c "rm -rf /data/*" || printf "${RED}Failure using Busybox${RESET}\n"
+	@printf "${GREEN}Complete cleaning finished.${RESET}\n"
 
 fclean: stop clean
 	@echo "${YELLOW}Removing containers, images, and volumes from docker-compose...${RESET}"
