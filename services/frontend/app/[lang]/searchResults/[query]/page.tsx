@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, use, useRef, useCallback } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import styles from '../../landing/landing.module.css';
 import Link from 'next/link';
 import Image from 'next/image';
 import { fetchApi } from '@/lib/fetch-api';
-// import translations from '@/locales';
 import { usePathname } from 'next/navigation';
 
 type Film = {
@@ -22,7 +21,6 @@ const SearchResultsPage = ({ params }: { params: Promise<{ lang: string; query: 
   const { lang, query } = use(params);
   const [searchedFilms, setSearchedFilms] = useState<Film[]>([]);
   const [popularFilms, setPopularFilms] = useState<Film[]>([]);
-  // const t = translations[lang as keyof typeof translations];
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -50,7 +48,7 @@ const SearchResultsPage = ({ params }: { params: Promise<{ lang: string; query: 
     }, 400);
 
     return () => clearTimeout(debounce);
-  }, [lang]);
+  }, [lang, query]);
 
   const pathname = usePathname();
   if (!pathname)  return null;

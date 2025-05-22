@@ -47,7 +47,7 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
 
   const { idFilm } = use(params);
   const [movieData, setMovieData] = useState<MovieData | null>(null);
-  const [trailerData, setTrailerData] = useState<any | null>(null);
+  const [trailerData, setTrailerData] = useState<unknown | null>(null);
   let lang = "en";
   // const lang = use(params).lang;
   //
