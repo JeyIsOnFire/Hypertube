@@ -47,6 +47,7 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
 
   const { idFilm } = use(params);
   const [movieData, setMovieData] = useState<MovieData | null>(null);
+  const [trailerData, setTrailerData] = useState<unknown | null>(null);
   let lang = "en";
   // const lang = use(params).lang;
   //
@@ -56,6 +57,10 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
       try {
         const res = await fetchApi(`${lang}/getMovieInfosById/${idFilm}`);
         setMovieData(res);
+
+        const trailerRes = await fetchApi(`${lang}/getMovieTrailer/${idFilm}`);
+        setTrailerData(trailerRes);
+
       } catch (err) {
         console.error("Erreur API: ", err);
       }
@@ -68,7 +73,7 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
   lang = pathname.split('/')[1] as 'fr' | 'en';
 
   if (!movieData) {
-    return <div>Chargement...</div>;
+    return <div style={{height: '100vh'}}></div>;
   }
 
   const t = translations[lang as 'fr' | 'en'];
@@ -127,8 +132,17 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
         </div>
 
         <p className={styles.overview}>{movieData["movie_data"].overview}</p>
+        <div className={styles.trailerContainer}>
+          <iframe
+            width="100%"
+            height="315"
+            src={`https://www.youtube.com/embed/${trailerData?.results[0]?.key}`}
+            title="YouTube video player"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
         <button className={styles.watchButton}>{t.watchnow}</button>
-        <div className={styles.videoContainer}>video</div>
       </main>
     </div>
   );

@@ -22,36 +22,19 @@ else
 	APP_VOLUME := $(HOME)/42/Docker_volume/app
 endif
 
-.PHONY: all fclean clean stop down start re restart create-dir resume
+.PHONY: all fclean clean stop down re restart create-dir resume
 
 all: create-dir down
-	@bash -c 'source .env && exec docker compose up -d'
+	@bash -c 'source .env && exec docker compose up --build -d'
 
 prod: create-dir down
 	@bash -c 'source .env && exec docker compose -f ./docker-compose.yml -f ./docker-compose.prod.yml up --build -d'
-
-fclean: stop clean
-	@printf "${YELLOW}Withdrawal of Docker images...${RESET}\n"
-	@docker rmi -f my_app postgres:17 dpage/pgadmin4 busybox || true
-	@printf "${GREEN}Images deleted.${RESET}\n"
-
-fclean2: stop clean
-	@printf "${YELLOW}Removing containers, images, and volumes from docker-compose...${RESET}\n"
-	@docker compose down --volumes --rmi all || echo "${RED}Could not fully clean with docker compose down${RESET}"
-	@docker rmi -f busybox || echo "${CYAN}busybox image not found or already removed.${RESET}"
-	@printf "${GREEN}All docker-compose resources have been removed.${RESET}\n"
 
 stop:
 	@docker compose stop
 
 down:
 	@docker compose down -v
-
-start: create-dir
-	@bash -c 'source .env && docker compose up -d'
-	@printf "${BLUE}Waiting for my_app...${RESET}\n"
-	@until docker ps | grep -q "my_app"; do sleep 1; done
-	@docker exec -it my_app bash
 
 resume:
 	@printf "${BLUE}Restarting all stopped containers...${RESET}\n"
@@ -79,6 +62,8 @@ env:
 	@( grep -q '^DB_VOLUME=' .env && sed -i 's|^DB_VOLUME=.*|DB_VOLUME=$(DB_VOLUME)|' .env || echo "DB_VOLUME=$(DB_VOLUME)" >> .env )
 	@printf "${GREEN}.env file updated.${RESET}"\n;
 
+re: clean fclean all
+
 clean:
 	@printf "${YELLOW}Cleaning PostgreSQL DB...${RESET}\n"
 	@if docker container inspect my_postgres > /dev/null 2>&1; then \
@@ -100,4 +85,8 @@ clean:
 	@docker run --rm -v $(DB_VOLUME):/data busybox sh -c "rm -rf /data/*" || printf "${RED}Failure using Busybox${RESET}\n"
 	@printf "${GREEN}Complete cleaning finished.${RESET}\n"
 
-re: clean fclean all
+fclean: stop clean
+	@echo "${YELLOW}Removing containers, images, and volumes from docker-compose...${RESET}"
+	@docker compose down --volumes --rmi all --remove-orphans || echo "${RED}Could not fully clean with docker compose down${RESET}"
+	@docker rmi -f busybox || echo "${CYAN}busybox image not found or already removed.${RESET}"
+	@echo "${GREEN}All docker-compose resources have been removed.${RESET}"
