@@ -37,42 +37,17 @@ done
 
 
 psql -h "$HOST" -U "$SUPERUSER" -d "$DB" <<-EOSQL
+GRANT role_users  TO backend_user;
+GRANT role_movies TO backend_movies;
 
-DO \$\$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'role_users') THEN
-    CREATE ROLE role_users NOLOGIN;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'role_movies') THEN
-    CREATE ROLE role_movies NOLOGIN;
-  END IF;
-END
-\$\$;
-
-
-GRANT USAGE ON SCHEMA public TO role_users;
+GRANT USAGE ON SCHEMA public TO role_users, role_movies;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.users_user TO role_users;
-
-GRANT USAGE ON SCHEMA public TO role_movies;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.movies_movie TO role_movies;
-
-
-DO \$\$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${BACKEND_USER_NAME}') THEN
-    CREATE USER "${BACKEND_USER_NAME}" WITH ENCRYPTED PASSWORD '${BACKEND_USER_PASSWORD}';
-    GRANT role_users TO "${BACKEND_USER_NAME}";
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${BACKEND_MOVIES_NAME}') THEN
-    CREATE USER "${BACKEND_MOVIES_NAME}" WITH ENCRYPTED PASSWORD '${BACKEND_MOVIES_PASSWORD}';
-    GRANT role_movies TO "${BACKEND_MOVIES_NAME}";
-  END IF;
-END
-\$\$;
-
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO role_users, role_movies;
+
+REVOKE CREATE ON SCHEMA public FROM PUBLIC, backend_user, backend_movies;    
 EOSQL
 
 echo "Grants applied successfully."
