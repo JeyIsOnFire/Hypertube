@@ -109,6 +109,10 @@ const Landing = ({ lang }: HeaderProps) => {
 
       {/*----------------------------- POPULAR FILMS -----------------------------*/}
       <section className={styles.grid}>
+        {!popularFilms.length && (
+          <div style={{ height: '100vh'}}>
+          </div>
+        )}
         {popularFilms?.map((film, index: number) => (
           <div key={film.id} className={styles.card}>
             <Link

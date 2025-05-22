@@ -20,29 +20,33 @@ type Film = {
 const SearchResultsPage = ({ params }: { params: Promise<{ lang: string; query: string }> }) => {
 
   const { lang, query } = use(params);
+  const [searchedFilms, setSearchedFilms] = useState<Film[]>([]);
   const [popularFilms, setPopularFilms] = useState<Film[]>([]);
   // const t = translations[lang as keyof typeof translations];
 
   useEffect(() => {
     const debounce = setTimeout(() => {
-      const fetchPopularMovies = async () => {
+      const fetchSearchedMovies = async () => {
         try {
           const res = await fetchApi(`${lang}/fetchMovieData?query=${encodeURIComponent(query)}`);
           const newFilms = res?.results || [];
-          setPopularFilms(prev => {
-            const combined = [...prev, ...newFilms];
-            const unique = combined.filter(
-              (film, index, self) => index === self.findIndex(f => f.id === film.id)
-            );
-            return unique;
-          });
-
-          console.log("res:", res);
+          if (newFilms.length === 0) {
+            const popularRes = await fetchApi(`${lang}/fetchPopularMovies/1`);
+            setPopularFilms(popularRes?.results || []);
+          } else {
+            setSearchedFilms(prev => {
+              const combined = [...prev, ...newFilms];
+              const unique = combined.filter(
+                (film, index, self) => index === self.findIndex(f => f.id === film.id)
+              );
+              return unique;
+            });
+          }
         } catch (err) {
           console.error("Erreur API: ", err);
         }
       };
-      fetchPopularMovies();
+      fetchSearchedMovies();
     }, 400);
 
     return () => clearTimeout(debounce);
@@ -62,7 +66,12 @@ const SearchResultsPage = ({ params }: { params: Promise<{ lang: string; query: 
     <>
       {/*----------------------------- RESULTS SEARCH -----------------------------*/}
       <section className={styles.grid}>
-        {popularFilms?.map((film, index: number) => (
+        {!popularFilms.length && !searchedFilms.length && (
+          <div style={{ height: '100vh'}}>
+          </div>
+        )}
+        {(searchedFilms.length !== 0 ? [...searchedFilms] : [...popularFilms])
+          .sort((a, b) => a.title.localeCompare(b.title)).map((film, index: number) => (
           <div key={film.id} className={styles.card}>
             <Link
               key={index}

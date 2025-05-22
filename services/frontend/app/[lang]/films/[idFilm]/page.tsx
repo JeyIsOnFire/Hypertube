@@ -68,7 +68,7 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
   lang = pathname.split('/')[1] as 'fr' | 'en';
 
   if (!movieData) {
-    return <div>Chargement...</div>;
+    return <div style={{height: '100vh'}}></div>;
   }
 
   const t = translations[lang as 'fr' | 'en'];
