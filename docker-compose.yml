@@ -57,8 +57,11 @@ services:
       - ./services/backend-scraper:/app
     networks:
       - hypertube-net
-    env_file:
-      - ./.env
+    environment:
+      - POSTGRES_USER=${BACKEND_SCRAPER_NAME}
+      - POSTGRES_PASSWORD=${BACKEND_SCRAPER_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgresql
     # depends_on:
     #   postgresql:
     #     condition: service_healthy

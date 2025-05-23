@@ -37,16 +37,13 @@ def fetch_with_scraper(request, movie_data):
             movie_year = movie['release_date'][:4]
             if movie_name:
                 formatted_for_scrap.append(quote(movie_name + " " + str(movie_year)))
-        scrapper_response = requests.get(scraper_url + ",".join(formatted_for_scrap))
+        scrapper_response = requests.get(scraper_url + "~".join(formatted_for_scrap))
         if scrapper_response.status_code == 200:
             scrap_data = scrapper_response.json()
             for movie in movie_data['results']:
                 movie_keyword = movie['original_title'] + " " + str(movie['release_date'][:4])
                 if movie_keyword in scrap_data:
-                    original_title = re.sub(r'[._\-]+', ' ', movie['original_title'].lower())
-                    original_title = re.sub(':', '', original_title)
-                    if original_title in scrap_data[movie_keyword]:
-                        filtered_movies['results'].append(movie)
+                    filtered_movies['results'].append(movie)
         return filtered_movies
 
 def fetch_movie_data(request, lang_code='fr'):
@@ -55,10 +52,10 @@ def fetch_movie_data(request, lang_code='fr'):
     movie_response = requests.get(movie_url, headers=headers)
     if movie_response.status_code == 200:
         movie_data = movie_response.json() 
-        # filtered_movies = fetch_with_scraper(request, movie_data)
+        filtered_movies = fetch_with_scraper(request, movie_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
-    return JsonResponse(movie_data, safe=False)
+    return JsonResponse(filtered_movies, safe=False)
 
 
 def fetch_popular_movies(request, lang_code='fr', pageNum=None):
@@ -70,7 +67,7 @@ def fetch_popular_movies(request, lang_code='fr', pageNum=None):
         filtered = fetch_with_scraper(request, movies_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movies_response.status_code)
-    return JsonResponse(movies_data, safe=False)
+    return JsonResponse(filtered, safe=False)
 
 
 def get_movie_infos_by_id(request, lang_code='fr', id=None):

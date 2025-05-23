@@ -5,7 +5,7 @@ import asyncio
 import httpx
 from bs4 import BeautifulSoup
 
-from db import get_db_connection, close_db_connection
+from db import get_connection
 
 app = FastAPI()
  
@@ -25,6 +25,7 @@ app.add_middleware(
 
 
 LEET_URL = "https://1337x.to"
+YTS_URL = "https://yts.mx"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
            "Accept-Language": "en-US,en;q=0.5",
            "Referer": "https://google.com/",
@@ -57,7 +58,6 @@ async def get_torrent_details(client, relative_url):
 
 async def search_torrents_1337x(keyword, client, get_magnet=True):
     url = f"{LEET_URL}/category-search/{keyword}/Movies/1/"
-    print(f"Searching for {keyword} at {url}")
     if get_magnet:
         html = await fetch_html(client, url)
     else:
@@ -76,14 +76,19 @@ async def search_torrents_1337x(keyword, client, get_magnet=True):
         else:
             for a in links:
                 title = a.text.strip()
-                results.append(title)
-            # results.extend([r for r in links if r["href"]])
+                title = parse_movie_name(title, keyword[:-4])
+                if title:
+                    results.append({
+                        "title": title,
+                        "link": LEET_URL + a["href"],
+                        "source": "1337x",
+                        "keyword": keyword
+                    })
         return results
 
 
 async def search_torrents_yts(keyword, client, get_magnet=True):
-    url = f"https://yts.mx/browse-movies/{keyword}/all/all/0/latest/0/all"
-    print(f"Searching for {keyword} at {url}")
+    url = f"{YTS_URL}/browse-movies/{keyword}/all/all/0/latest/0/all"
     if get_magnet:
         html = await fetch_html(client, url)
     else:
@@ -102,26 +107,28 @@ async def search_torrents_yts(keyword, client, get_magnet=True):
         else:
             for a in links:
                 title = a.text.strip()
-                results.append(title)
-            # results.extend([r for r in links if r["href"]])
+                title = parse_movie_name(title, keyword[:-4])
+                if title:
+                    results.append({
+                        "title": title,
+                        "link": a["href"],
+                        "source": "YTS",
+                        "keyword": keyword
+                    })
         return results
 
 def clean_title(raw_title):
     return ' '.join(word.capitalize() for word in raw_title.strip().split())
 
-def parse_movie_name(filename):
-    clean_name = re.sub(r'[._\-]+', ' ', filename)
-    clean_name = re.sub(r'\[.*?\]|\(.*?\)', '', clean_name)
-    clean_name = re.sub(':', '', clean_name)
-    clean_name = re.sub(r'\s+', ' ', clean_name).strip()
-    match = re.search(r'^(.*?)(?:19|20)\d{2}', clean_name)
-    raw_title = filename
-    if match:
-        raw_title = match.group(1)
-    else:
-        raw_title = re.split(r'\b(720p|1080p|2160p|x264|x265|WEBRip|BluRay|HDRip|HDTS|HDTC|CAM|NF|AMZN|DDP|HEVC)\b', clean_name, flags=re.IGNORECASE)[0]
-    title = clean_title(raw_title)
-    return title if title else raw_title
+def resub_title_regex(title:str) -> str:
+    return re.sub(r'[^a-zA-Z0-9&-]', '', title)
+
+def parse_movie_name(filename: str, keyword: str):
+    keyword = keyword.lower()
+    keyword = resub_title_regex(keyword)
+    filename = filename.lower()
+    filename = resub_title_regex(filename)
+    return filename[0:len(keyword)]
 
 # @app.get("/")
 # async def root():
@@ -136,8 +143,32 @@ def parse_movie_name(filename):
 #         })
 #     return ret
 
-async def search_in_database(keyword):
-    pass
+async def search_in_database(title, year):
+    db_pool = await get_connection()
+    async with db_pool.acquire() as conn:
+        print("Searching in database")
+        exist = await conn.fetch("SELECT * FROM movies_movie WHERE name = $1 AND year = $2", title, year)
+        print("Exist in database:", exist)
+        if exist:
+            return True
+        return False
+
+async def save_in_database(film_info:dict):
+    db_pool = await get_connection()
+    async with db_pool.acquire() as conn:
+        print("Saving in database")
+        exist = await conn.fetch("SELECT * FROM movies_movie WHERE name = $1 AND year = $2 AND origin = $3", film_info["keyword"][:-4].strip(), int(film_info["keyword"][-4:]), film_info["source"])
+        if exist:
+            print("Already exists in database")
+            return
+        await conn.execute(
+            """
+            INSERT INTO movies_movie (name, year, origin, page)
+            VALUES ($1, $2, $3, $4)
+            """,
+            film_info["keyword"][:-4].strip(), int(film_info["keyword"][-4:]), film_info["source"], film_info["link"]
+        )
+
 @app.get("/search")
 async def search(request: Request):
     keyword = request.query_params.get("query")
@@ -146,47 +177,47 @@ async def search(request: Request):
     ret = []
     async with httpx.AsyncClient(headers=HEADERS) as client:
         tasks = []
-        keywords = keyword.split(",")
+        keywords = keyword.split("~")
         for i in range(len(keywords)):
             keywords[i] = keywords[i].strip()
             key = keywords[i]
             if not key:
                 continue
-            database_results = await search_in_database(key)
+            database_results = await search_in_database(key[:-4].strip(), int(key[-4:]))
+            if database_results == True:
+                print("Already exists in database")
+                ret.append(key)
+                continue
             tasks.append(search_torrents_1337x(key, get_magnet=False, client=client))
             tasks.append(search_torrents_yts(key, get_magnet=False, client=client))
         results = await asyncio.gather(*tasks)
-        for key in keywords:
-            print("key :", key)
-            key = key.strip()
-            if not key:
+        unified_results = []
+        for result in results:
+            unified_results.extend(result)
+        for result in unified_results:
+            print("result :", result, type(result))
+            if type(result) != dict:
+                print("Not a dict")
                 continue
-            leet_res = results.pop(0)
-            yts_res = results.pop(0)
-            result_req = leet_res + yts_res
-            if len(result_req) == 0:
-                print(f"No results found for keyword '{key}'")
+            if "title" not in result or "link" not in result or "source" not in result or "keyword" not in result:
+                print("Missing keys in result")
                 continue
-            print(f"Found {len(result_req)} results for keyword '{key}'")
-            try:
-                for result in result_req:
-                    print("result :", result, type(result))
-                    if type(result) == str and len(result) > 0:
-                        movie_name = parse_movie_name(result)
-                        movie_name = movie_name.lower()
-                        if key.lower()[:4] in movie_name:
-                            print("movie_name :", movie_name)
-                            if movie_name not in ret:
-                                ret.append(movie_name)
-                            # if result in leet_res:
-                            #     print("Found in 1337x")
-                            # elif result in yts_res:
-                            #     print("Found in YTS")
-                    else:
-                        print("No title found")
-                        continue
-            except Exception as e:
-                print(f"Error parsing result on key {key}: {e}")
+            if len(result["title"].strip()) == 0 or len(result["link"].strip()) == 0 or len(result["source"].strip()) == 0 or len(result["keyword"].strip()) == 0:
+                print("Empty keys in result")
                 continue
+            print(parse_movie_name(result["title"], result["keyword"][:-4]))
+            if result["title"] != resub_title_regex(result["keyword"][:-4].strip().lower()):
+                print("Title does not match keyword")
+                continue
+            if result["keyword"] not in keywords:
+                print("Keyword not in keywords")
+                continue
+            await save_in_database(result)
+            if result["keyword"][:-4].strip() not in ret:
+                ret.append(result["keyword"].strip())
         print("Final results:", ret)
         return ret
+    
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
