@@ -134,12 +134,11 @@ export default function FilmPage({ params }: { params: Promise<{ idFilm: string 
         <p className={styles.overview}>{movieData["movie_data"].overview}</p>
         <div className={styles.trailerContainer}>
           <iframe
-            width="100%"
-            height="315"
             src={`https://www.youtube.com/embed/${trailerData?.results[0]?.key}`}
             title="YouTube video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
+            style={{ width: '100%', height: '100%' }}
           ></iframe>
         </div>
         <button className={styles.watchButton}>{t.watchnow}</button>
