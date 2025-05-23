@@ -1,33 +1,44 @@
 # services/backend-user/users/views.py
-from rest_framework import viewsets, generics, permissions
+from rest_framework import viewsets, generics
+from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.views import APIView
+from .serializers import UserSerializer, PublicUserSerializer
+from .serializers import UserUpdateSerializer, UserRegisterSerializer
+from .permissions import IsSelfOrReadOnly
 from .models import User
-from .serializers import UserSerializer, UserRegisterSerializer
-from .serializers import UserUpdateSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsSelfOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return PublicUserSerializer
+        return UserSerializer
 
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []
 
 
 class UserUpdateView(generics.UpdateAPIView):
     serializer_class = UserUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
 
+
 class ProfileView(APIView):
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
+    def get_object(self):
+        return self.request.user
