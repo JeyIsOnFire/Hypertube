@@ -12,5 +12,12 @@ class User(AbstractUser):
     preferred_language = models.CharField(max_length=10, default='en')
     is_staff = models.BooleanField(default=False)
 
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'username']
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
     USERNAME_FIELD = 'username'
+
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
+    def __str__(self):
+        return self.username

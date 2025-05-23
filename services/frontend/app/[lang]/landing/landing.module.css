@@ -31,6 +31,7 @@
   padding: 2rem;
   background: var(--dark);
 }
+
 .card {
   background: var(--beige);
   color: var(--dark);
@@ -39,10 +40,9 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 .card img {
-  display: block;
-  width: 100%;
-  height: auto;
+  aspect-ratio: 2/3;
 }
+
 .card .info {
   padding: 0.2rem;
   font-family: var(--ff-heading);
