@@ -1,8 +1,12 @@
 "use client";
 
 import React from 'react';
+import { signIn, signOut, useSession } from 'next-auth/react';
+import styles from './register.module.css';
 
-const registerPage = () => {
+const RegisterPage = () => {
+
+  const { data: session } = useSession();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -29,6 +33,14 @@ const registerPage = () => {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
+      {session ? (
+        <div>
+          <h1>Welcome, {session.user?.name}</h1>
+          <button onClick={() => signOut()}>Sign out</button>
+        </div>
+      ) : (
+        <button className={styles.githubButton} onClick={() => signIn('github')}>Sign in with GitHub</button>
+      )}
       <h1 style={{marginBottom: '30px'}}>Register</h1>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <input style={{border: '1px solid black', marginBottom: '20px', padding: '5px'}} type="text" placeholder="Username" />
@@ -49,4 +61,4 @@ const registerPage = () => {
   );
 }
 
-export default registerPage;
+export default RegisterPage;

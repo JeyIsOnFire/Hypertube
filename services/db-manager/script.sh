@@ -37,7 +37,7 @@ done
 
 
 psql -h "$HOST" -U "$SUPERUSER" -d "$DB" <<-EOSQL
-GRANT role_users  TO backend_user;
+GRANT role_users  TO backend_user, backend_oauth;
 GRANT role_movies TO backend_movies;
 
 GRANT USAGE ON SCHEMA public TO role_users, role_movies;
@@ -47,7 +47,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.movies_movie TO role_movies
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO role_users, role_movies;
 
-REVOKE CREATE ON SCHEMA public FROM PUBLIC, backend_user, backend_movies;    
+REVOKE CREATE ON SCHEMA public FROM PUBLIC, backend_user, backend_movies, backend_oauth;
 EOSQL
 
 echo "Grants applied successfully."

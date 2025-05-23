@@ -20,16 +20,19 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='backend_movies') THEN
     CREATE ROLE backend_movies LOGIN PASSWORD '${BACKEND_MOVIES_PASSWORD}';
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='backend_oauth') THEN
+    CREATE ROLE backend_oauth LOGIN PASSWORD '${BACKEND_OAUTH_PASSWORD}';
+  END IF;
 END
 \$\$;
 
 -- granting permissions on backend super-users
-GRANT CREATE ON SCHEMA public TO backend_user, backend_movies;
-GRANT USAGE  ON SCHEMA public TO backend_user, backend_movies;
-GRANT USAGE  ON ALL SEQUENCES IN SCHEMA public TO backend_user, backend_movies;
+GRANT CREATE ON SCHEMA public TO backend_user, backend_movies, backend_oauth;
+GRANT USAGE  ON SCHEMA public TO backend_user, backend_movies, backend_oauth;
+GRANT USAGE  ON ALL SEQUENCES IN SCHEMA public TO backend_user, backend_movies, backend_oauth;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-  GRANT USAGE ON SEQUENCES TO backend_user, backend_movies;
+  GRANT USAGE ON SEQUENCES TO backend_user, backend_movies, backend_oauth;
 EOSQL
 
 echo "init-roles.sh terminated successfully."

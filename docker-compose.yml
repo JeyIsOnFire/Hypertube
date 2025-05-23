@@ -76,6 +76,21 @@ services:
       postgresql:
         condition: service_healthy
 
+  backend-oauth:
+    container_name: backend-oauth
+    build: ./services/backend-oauth
+    expose:
+      - 9000
+    volumes:
+      - ./services/backend-oauth:/app
+    networks:
+      - hypertube-net
+    env_file:
+      - .env
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
   postgresql:
     container_name: postgresql
     image: postgres:17

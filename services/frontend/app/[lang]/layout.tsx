@@ -5,6 +5,8 @@ import styles from './components/header.module.css';
 import Header from './components/header'
 import getTranslations from '@/lib/getTranslations';
 
+import SessionWrapper from './components/sessionWrapper';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -39,7 +41,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Header lang={lang as 'en' | 'fr'} />
-        {children}
+        <SessionWrapper>{children}</SessionWrapper>
         <footer className={styles.footer}>{t.rightsreserved}</footer>
       </body>
       {/*----------------------------- FOOTER -----------------------------*/}

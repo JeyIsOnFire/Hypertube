@@ -24,8 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'users',
     'django_extensions',
+    'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +78,9 @@ REST_FRAMEWORK = {
 
 REST_USE_JWT = True  # pour utiliser JWT si tu préfères
 
-AUTH_USER_MODEL = 'users.User'
+LOGIN_URL = "admin/login/"
+
+LOGIN_REDIRECT_URL = "/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
