@@ -5,11 +5,10 @@ from .views import UserViewSet, RegisterView, UserUpdateView, ProfileView
 
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
+router.register(r'', UserViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    # path('', ShowUsersList.as_view(), name='users')
     path('register/', RegisterView.as_view(), name='register'),
     path('update/', UserUpdateView.as_view(), name='update'),
     path('profile/', ProfileView.as_view(), name='profile'),

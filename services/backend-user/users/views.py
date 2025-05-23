@@ -19,11 +19,11 @@ class RegisterView(generics.CreateAPIView):
 
 
 class UserUpdateView(generics.UpdateAPIView):
-    queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'id'
 
+    def get_object(self):
+        return self.request.user
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
