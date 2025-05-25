@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import styles from './register.module.css'
 
 const registerPage = () => {
 
@@ -29,21 +30,37 @@ const registerPage = () => {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1 style={{marginBottom: '30px'}}>Register</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <input style={{border: '1px solid black', marginBottom: '20px', padding: '5px'}} type="text" placeholder="Username" />
-        <input style={{border: '1px solid black', marginBottom: '20px', padding: '5px'}}  type="password" placeholder="Password" />
-        <input style={{border: '1px solid black', marginBottom: '20px', padding: '5px'}} type="email" placeholder="Email" />
-        <input style={{border: '1px solid black', marginBottom: '20px', padding: '5px'}} type="text" placeholder="First Name" />
-        <input style={{border: '1px solid black', marginBottom: '20px', padding: '5px'}} type="text" placeholder="Last Name" />
-        <input style={{border: '1px solid black', marginBottom: '20px', padding: '5px'}} type="text" placeholder="Preferred Language" />
-        <input
-          style={{ border: '1px solid black', marginBottom: '20px' }}
-          type="file"
-          accept="image/*"
-          placeholder="Upload Profile Picture"
-        />
+      <form id={styles.registerForm} onSubmit={handleSubmit}>
+        <h1 style={{fontSize: '3em'}}>Register</h1>
+        <input className="inputStyle1" type="text" placeholder="Username"/>
+        <input className="inputStyle1" type="password" placeholder="Password"/>
+        <input className="inputStyle1" type="password" placeholder="Password confirmation"/>
+        <input className="inputStyle1" type="email" placeholder="Email"/>
+        <input className="inputStyle1" type="text" placeholder="First Name"/>
+        <input className="inputStyle1" type="text" placeholder="Last Name"/>
+        <fieldset>
+          <legend>Preferred language</legend>
+
+          <div style={{display: 'flex'}}>
+            <label className="custom-radio">
+              <input type="radio" name="lang" value="eng" defaultChecked />
+              <span className="radio-mark"></span>
+              English
+            </label>
+
+            <label className="custom-radio">
+              <input type="radio" name="lang" value="fr"/>
+              <span className="radio-mark"></span>
+              French
+            </label>
+          </div>
+        </fieldset>
+        <span>
+            <div>Profile picture (Optional)</div>
+            <input className="uploadInputFile" type="file" id="images" accept="image/*"/>
+        </span>
         <button style={{background: 'green', padding: '10px', borderRadius: '5px'}} type="submit">Register</button>
+        <a>Already register ?</a>
       </form>
     </div>
   );
