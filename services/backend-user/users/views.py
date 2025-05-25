@@ -1,9 +1,10 @@
 # services/backend-user/users/views.py
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import UserSerializer, PublicUserSerializer
 from .serializers import UserUpdateSerializer, UserRegisterSerializer
@@ -28,6 +29,21 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
     authentication_classes = []
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response({
+                "success": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_200_OK)
+
+        self.perform_create(serializer)
+        return Response({
+            "success": True,
+            "user": serializer.data
+        }, status=status.HTTP_200_OK)
 
 
 class UserUpdateView(generics.UpdateAPIView):

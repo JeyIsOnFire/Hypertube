@@ -60,6 +60,7 @@ footer {
   color: blanchedalmond;
   padding: 10px;
   width: 90%;
+  max-width: 450px;
   background-color: var(--dark);
   border-radius: 5px;
 }
@@ -105,7 +106,7 @@ footer {
   height: 16px;
   border: 2px solid var(--dark, #222);
   border-radius: 50%;
-  margin-right: 10px;
+  margin-right: 5px;
   position: relative;
   transition: border-color 0.2s;
 }

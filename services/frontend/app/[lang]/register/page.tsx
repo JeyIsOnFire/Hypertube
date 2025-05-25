@@ -45,14 +45,25 @@ export default function registerPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const dataToSend = convertToFormData();
-    const response = await fetch('/users/register/', {
-      method: 'POST',
-      body: dataToSend
-    });
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Registration successful:', data);
+    try {
+      const response = await fetch('/users/register/', {
+        method: 'POST',
+        body: dataToSend
+      });
+
+        if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Registration failed:', errorData);
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Registration success:", result);
+
+    } catch (err) {
+      console.error('Request failed:', err);
     }
+    console.log('Registration successful:', dataToSend);
   };
 
   return (
@@ -68,7 +79,7 @@ export default function registerPage() {
         <fieldset>
           <legend>Preferred language</legend>
 
-          <div style={{display: 'flex'}}>
+          <div style={{display: 'flex', gap: '15px'}}>
             <label className="custom-radio">
               <input type="radio" name="preferredLanguage" value="eng" defaultChecked onChange={handleChange}/>
               <span className="radio-mark"></span>
