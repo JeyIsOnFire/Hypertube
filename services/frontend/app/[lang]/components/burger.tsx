@@ -2,10 +2,17 @@ import React from 'react';
 import styles from './burger.module.css';
 import translations from '@/locales';
 import LanguageSwitcher from './language-switcher';
+import { Monoton } from 'next/font/google';
 
-const Burger = () => {
+const monoton = Monoton({ subsets: ['latin'], weight: '400' });
+
+type HeaderProps = {
+  lang: 'fr' | 'en';
+}
+
+const Burger = ({ lang }: HeaderProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const t = translations['en'];
+  const t = translations[lang];
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -29,7 +36,7 @@ const Burger = () => {
         <div className={styles.languageSwitcher}>
           <LanguageSwitcher />
         </div>
-        <div className={styles.nav}>
+        <div className={`${monoton.className} ${styles.nav}`}>
         <a href="#">{t.home}</a>
         <a href="#">{t.movies}</a>
         <a href="#">{t.shows}</a>
@@ -41,7 +48,6 @@ const Burger = () => {
       {isOpen && (
           <div className={styles.overlay} onClick={toggleMenu}></div>
       )}
-
     </>
   );
 };

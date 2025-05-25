@@ -17,6 +17,7 @@ const en = {
   'casting': 'Casting',
   'production': 'Production',
   'watchnow': 'Watch Now',
+  'searchButton': 'Search',
 }
 
 export default en;

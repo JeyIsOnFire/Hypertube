@@ -1,21 +1,23 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useParams } from 'next/navigation';
+// import { useParams } from 'next/navigation';
 
-const SUPPORTED_LOCALES = ['fr', 'en'];
+const SUPPORTED_LOCALES = ['fr', 'en'] as const;
 
 export default function LanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
-  const params = useParams();
+  if (!pathname) return null;
+  // const params = useParams();
 
-  const currentLang = params.lang;
-  const otherLang = SUPPORTED_LOCALES.find(l => l !== currentLang);
+  // const currentLang = params.lang;
+  const currentLang = pathname.split('/')[1];
+  const otherLang = SUPPORTED_LOCALES.find(l => l !== currentLang) as 'fr' | 'en';
 
   const switchLang = () => {
     const segments = pathname.split('/');
-    segments[1] = otherLang!; // remplace le segment langue
+    segments[1] = otherLang;
     const newPath = segments.join('/');
     router.push(newPath);
 
@@ -39,6 +41,7 @@ export default function LanguageSwitcher() {
       </svg>
     )
   };
+
 
 
   return (

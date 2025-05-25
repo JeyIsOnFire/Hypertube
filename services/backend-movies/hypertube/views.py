@@ -54,22 +54,22 @@ def fetch_movie_data(request, lang_code='fr'):
     movie_response = requests.get(movie_url, headers=headers)
     if movie_response.status_code == 200:
         movie_data = movie_response.json() 
-        filtered_movies = fetch_with_scraper(request, movie_data)
+        # filtered_movies = fetch_with_scraper(request, movie_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
-    return JsonResponse(filtered_movies, safe=False)
+    return JsonResponse(movie_data, safe=False)
 
 
 def fetch_popular_movies(request, lang_code='fr', pageNum=None):
     headers = tmdb_auth()
-    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&page={pageNum}"
+    movies_url = f"https://api.themoviedb.org/3/movie/popular?language={lang_code}&include_adult=false&page={pageNum}"
     movies_response = requests.get(movies_url, headers=headers)
     if movies_response.status_code == 200:
         movies_data = movies_response.json()
-        filtered = fetch_with_scraper(request, movies_data)
+        # filtered = fetch_with_scraper(request, movies_data)
     else:
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movies_response.status_code)
-    return JsonResponse(filtered, safe=False)
+    return JsonResponse(movies_data, safe=False)
 
 
 def get_movie_infos_by_id(request, lang_code='fr', id=None):
@@ -85,12 +85,25 @@ def get_movie_infos_by_id(request, lang_code='fr', id=None):
         return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
     return JsonResponse({"movie_data": movie_data, "credits_data": credits_data}, safe=False)
 
-def opensubtitles_auth():
-    api_key = os.getenv("OPENSUBTITLES_API_KEY")
-    auth_url = "https://api.opensubtitles.com/api/v1/login"
-    header = {
-        "Content-Type": "application/json",
-        "Api-Key": api_key
-    }
+def get_movie_trailer(request, lang_code='fr', idFilm=None):
+    headers = tmdb_auth()
+    movie_url = f"https://api.themoviedb.org/3/movie/{idFilm}/videos?language={lang_code}&page=1"
+    movie_response = requests.get(movie_url, headers=headers)
+    if movie_response.status_code == 200:
+        movie_data = movie_response.json()
+        if len(movie_data['results']) > 0:
+            return JsonResponse(movie_data, safe=False)
+        else:
+            return JsonResponse({'error': 'No trailer found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Failed to fetch movie data'}, status=movie_response.status_code)
+
+# def opensubtitles_auth():
+#     api_key = os.getenv("OPENSUBTITLES_API_KEY")
+#     auth_url = "https://api.opensubtitles.com/api/v1/login"
+#     header = {
+#         "Content-Type": "application/json",
+#         "Api-Key": api_key
+#     }
 
 # def get_subtitles(request, lang_code='fr'):

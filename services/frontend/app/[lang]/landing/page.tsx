@@ -1,24 +1,65 @@
 "use client";
 
-import React, { use, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './landing.module.css';
 import Link from 'next/link';
+import Image from 'next/image';
 import { fetchApi } from '@/lib/fetch-api';
 import translations from '@/locales';
+import { usePathname } from 'next/navigation';
 
+type Film = {
+  id: number;
+  title: string;
+  poster_path: string;
+  release_date: string;
+  vote_average: number;
+  vote_count: number;
+}
 
+type HeaderProps = {
+  lang: 'fr' | 'en';
+}
 
-const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
+const Landing = ({ lang }: HeaderProps) => {
 
-  const lang = use(params).lang;
-  const t = translations[lang];
-  if (!t) {
-    console.error(`Missing translations for lang: ${lang}`);
-    return null;
-  }
-
-  const [popularFilms, setPopularFilms] = useState([]);
+  const [popularFilms, setPopularFilms] = useState<Film[]>([]);
   const [pageNum, setPageNum] = useState<number>(1);
+  const t = translations[lang];
+  const isFetching = useRef(false);
+
+  const checkIfBottom = useCallback(() => {
+    const scrollTop = window.scrollY;
+    const winH = window.innerHeight;
+    const docHeight = document.documentElement.scrollHeight;
+
+    return scrollTop + winH >= docHeight - 1;
+  }, []);
+
+  const tryLoadNextPage = useCallback(() => {
+    if (!isFetching.current && checkIfBottom()) {
+      isFetching.current = true;
+      setPageNum(prev => prev + 1);
+      console.log("Chargement page suivante");
+    }
+  }, [checkIfBottom, setPageNum, isFetching]);
+
+  // Vérifie au scroll
+  useEffect(() => {
+    const handleScroll = () => tryLoadNextPage();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [tryLoadNextPage]);
+
+  // Vérifie aussi après chaque ajout de contenu
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      isFetching.current = false;
+      tryLoadNextPage(); // 👈 Si on est toujours en bas => on recharge
+    }, 500); // Temps fictif de "chargement"
+
+    return () => clearTimeout(timeout);
+  }, [pageNum, tryLoadNextPage]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -46,49 +87,17 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
     }, 400);
 
     return () => clearTimeout(debounce);
-  }, [pageNum]);
+  }, [pageNum, lang]);
+
+  const pathname = usePathname();
+  if (!pathname)  return null;
 
 
-  const getColorFromNote = (note) => {
-    const clampedNote = Math.max(0, Math.min(parseInt(note), 10)); 
+  const getColorFromNote = (note: number) => {
+    const clampedNote = Math.max(0, Math.min(note, 10)); 
     const hue = (clampedNote / 10) * 120;
     return `hsl(${hue}, 100%, 30%)`;
   }
-
-  const isFetching = useRef(false);
-
-  const checkIfBottom = () => {
-    const scrollTop = window.scrollY;
-    const winH = window.innerHeight;
-    const docHeight = document.documentElement.scrollHeight;
-
-    return scrollTop + winH >= docHeight - 1;
-  };
-
-  const tryLoadNextPage = () => {
-    if (!isFetching.current && checkIfBottom()) {
-      isFetching.current = true;
-      setPageNum(prev => prev + 1);
-      console.log("Chargement page suivante");
-    }
-  };
-
-  // Vérifie au scroll
-  useEffect(() => {
-    const handleScroll = () => tryLoadNextPage();
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Vérifie aussi après chaque ajout de contenu
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      isFetching.current = false;
-      tryLoadNextPage(); // 👈 Si on est toujours en bas => on recharge
-    }, 500); // Temps fictif de "chargement"
-
-    return () => clearTimeout(timeout);
-  }, [pageNum]);
 
   return (
     <>
@@ -100,15 +109,18 @@ const Landing: React.FC = ({ params }: { params: { lang: string }}) => {
 
       {/*----------------------------- POPULAR FILMS -----------------------------*/}
       <section className={styles.grid}>
+        {!popularFilms.length && (
+          <div style={{ height: '100vh'}}>
+          </div>
+        )}
         {popularFilms?.map((film, index: number) => (
           <div key={film.id} className={styles.card}>
             <Link
-              onClick={()=>setResponse(null)}
               key={index}
               href={`/films/${film['id']}`}
             >
               <div className={styles.info}>
-                <img src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} />
+                <Image src={`https://image.tmdb.org/t/p/w300${film.poster_path}`} alt={film.title} width={1080} height={1920}/>
                 <div style={{ padding: '0.2rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                     <h3>{film.title}</h3>

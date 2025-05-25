@@ -30,7 +30,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* background: rgba(0, 0, 0, 0.5); */
 }
 
 .content h2 {
@@ -80,6 +79,12 @@
   border: 3px solid var(--beige);
 }
 
+.trailerContainer {
+  width: 30%;
+  height: 100%;
+  position: relative;
+}
+
 .row {
   display: flex;
   flex-direction: column;
@@ -95,3 +100,8 @@
     align-items: center;
   }
 } 
+
+.trailerContainer {
+  aspect-ratio: 16/9;
+  width: 70%;
+}

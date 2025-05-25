@@ -5,8 +5,9 @@ from django.contrib import admin
 from . import views
 
 urlpatterns = [
-    re_path(r'^(?P<lang_code>en|fr)/fetchMovieData/', views.fetch_movie_data),
-    re_path(r'^(?P<lang_code>en|fr)/fetchPopularMovies/(?P<pageNum>\d+)/$', views.fetch_popular_movies),
-    re_path(r'^(?P<lang_code>en|fr)/getMovieInfosById/(?P<id>\d+)/$', views.get_movie_infos_by_id),
+    re_path(r'^movies/(?P<lang_code>en|fr)/fetchMovieData/', views.fetch_movie_data),
+    re_path(r'^movies/(?P<lang_code>en|fr)/fetchPopularMovies/(?P<pageNum>\d+)/$', views.fetch_popular_movies),
+    re_path(r'^movies/(?P<lang_code>en|fr)/getMovieInfosById/(?P<id>\d+)/$', views.get_movie_infos_by_id),
+    re_path(r'^movies/(?P<lang_code>en|fr)/getMovieTrailer/(?P<idFilm>\d+)/$', views.get_movie_trailer),
 ]
 

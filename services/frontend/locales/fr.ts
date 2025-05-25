@@ -17,6 +17,7 @@ const fr = {
   'casting': 'Casting',
   'production': 'Production',
   'watchnow': 'Regarder maintenant',
+  'searchButton': 'Rechercher',
 }
 
 export default fr;
