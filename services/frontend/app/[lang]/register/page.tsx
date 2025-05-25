@@ -2,25 +2,52 @@
 
 import React from 'react';
 import styles from './register.module.css'
+import { useState } from "react";
 
-const registerPage = () => {
+export default function registerPage() {
+
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    confirmPassword: "",
+    email: "",
+    first_name: "",
+    last_name: "",
+    preferredLanguage: "eng",
+    profilePicture: null as File | null,
+  });
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  }
+
+  //We need a FormData because we have special input (File..) which mean a basic JSON stringify can't work.
+  function convertToFormData(): FormData {
+    const formDataConvert = new FormData();
+
+    for (const key in formData) {
+      const value = formData[key];
+
+      if (value === null || value === undefined) continue;
+
+      if (value instanceof File)
+        formDataConvert.append(key, value);
+      else
+        formDataConvert.append(key, String(value));
+    }
+    return formDataConvert;
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const dataToSend = convertToFormData();
     const response = await fetch('/users/register/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: event.target[0].value,
-        password: event.target[1].value,
-        email: event.target[2].value,
-        first_name: event.target[3].value,
-        last_name: event.target[4].value,
-        preferredLanguage: event.target[5].value,
-        profilePicture: event.target[6].files[0],
-      }),
+      body: dataToSend
     });
     if (response.ok) {
       const data = await response.json();
@@ -32,24 +59,24 @@ const registerPage = () => {
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <form id={styles.registerForm} onSubmit={handleSubmit}>
         <h1 style={{fontSize: '3em'}}>Register</h1>
-        <input className="inputStyle1" type="text" placeholder="Username"/>
-        <input className="inputStyle1" type="password" placeholder="Password"/>
-        <input className="inputStyle1" type="password" placeholder="Password confirmation"/>
-        <input className="inputStyle1" type="email" placeholder="Email"/>
-        <input className="inputStyle1" type="text" placeholder="First Name"/>
-        <input className="inputStyle1" type="text" placeholder="Last Name"/>
+        <input className="inputStyle1" name="username" type="text" placeholder="Username" onChange={handleChange}/>
+        <input className="inputStyle1" name="password" type="password" placeholder="Password" onChange={handleChange}/>
+        <input className="inputStyle1" name="confirmPassword" type="password" placeholder="Password confirmation" onChange={handleChange}/>
+        <input className="inputStyle1" name="email" type="email" placeholder="Email" onChange={handleChange}/>
+        <input className="inputStyle1" name="first_name" type="text" placeholder="First Name" onChange={handleChange}/>
+        <input className="inputStyle1" name="last_name" type="text" placeholder="Last Name" onChange={handleChange}/>
         <fieldset>
           <legend>Preferred language</legend>
 
           <div style={{display: 'flex'}}>
             <label className="custom-radio">
-              <input type="radio" name="lang" value="eng" defaultChecked />
+              <input type="radio" name="preferredLanguage" value="eng" defaultChecked onChange={handleChange}/>
               <span className="radio-mark"></span>
               English
             </label>
 
             <label className="custom-radio">
-              <input type="radio" name="lang" value="fr"/>
+              <input type="radio" name="preferredLanguage" value="fr" onChange={handleChange}/>
               <span className="radio-mark"></span>
               French
             </label>
@@ -57,7 +84,7 @@ const registerPage = () => {
         </fieldset>
         <span>
             <div>Profile picture (Optional)</div>
-            <input className="uploadInputFile" type="file" id="images" accept="image/*"/>
+            <input className="uploadInputFile" type="file" name="profilePicture" accept="image/*" onChange={handleChange}/>
         </span>
         <button style={{background: 'green', padding: '10px', borderRadius: '5px'}} type="submit">Register</button>
         <a>Already register ?</a>
@@ -65,5 +92,3 @@ const registerPage = () => {
     </div>
   );
 }
-
-export default registerPage;

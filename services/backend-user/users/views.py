@@ -1,5 +1,6 @@
 # services/backend-user/users/views.py
 from rest_framework import viewsets, generics
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
@@ -25,6 +26,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
     authentication_classes = []
 
 
