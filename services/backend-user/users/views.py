@@ -11,6 +11,8 @@ from .serializers import UserUpdateSerializer, UserRegisterSerializer
 from .permissions import IsSelfOrReadOnly
 from .models import User
 
+from .utils import generate_token
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -32,18 +34,17 @@ class RegisterView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
         if not serializer.is_valid():
             return Response({
                 "success": False,
                 "errors": serializer.errors
             }, status=status.HTTP_200_OK)
 
-        self.perform_create(serializer)
+        user = serializer.save()
         return Response({
             "success": True,
-            "user": serializer.data
-        }, status=status.HTTP_200_OK)
+            "token": generate_token(user)
+        })
 
 
 class UserUpdateView(generics.UpdateAPIView):

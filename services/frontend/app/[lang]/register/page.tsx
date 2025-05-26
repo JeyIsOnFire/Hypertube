@@ -48,7 +48,8 @@ export default function registerPage() {
     try {
       const response = await fetch('/users/register/', {
         method: 'POST',
-        body: dataToSend
+        body: dataToSend,
+        credentials: "include"
       });
 
         if (!response.ok) {
@@ -94,7 +95,7 @@ export default function registerPage() {
           </div>
         </fieldset>
         <span>
-            <div>Profile picture (Optional)</div>
+            <div>Profile picture (optional)</div>
             <input className="uploadInputFile" type="file" name="profilePicture" accept="image/*" onChange={handleChange}/>
         </span>
         <button style={{background: 'green', padding: '10px', borderRadius: '5px'}} type="submit">Register</button>
