@@ -3,8 +3,11 @@
 import React from 'react';
 import styles from './register.module.css'
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 
 export default function registerPage() {
+
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -59,8 +62,8 @@ export default function registerPage() {
       }
 
       const result = await response.json();
-      console.log("Registration success:", result);
-
+      localStorage.setItem("token", result["token"]);
+      router.push('/');
     } catch (err) {
       console.error('Request failed:', err);
     }
