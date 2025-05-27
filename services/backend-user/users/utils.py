@@ -10,7 +10,7 @@ def generate_token(user):
     payload = {
         'user_id': user.id,
         'username': user.username,
-        'exp': datetime.utcnow() + timedelta(days=7),  # Token valid for 7 days
+        'exp': datetime.utcnow() + timedelta(days=7),  # Token valid for 7 days (need to be update)
         'iat': datetime.utcnow(),
     }
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')

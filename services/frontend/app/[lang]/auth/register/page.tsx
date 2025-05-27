@@ -55,14 +55,14 @@ export default function registerPage() {
         credentials: "include"
       });
 
-        if (!response.ok) {
+      if (!response.ok) {
         const errorData = await response.json();
         console.error('Registration failed:', errorData);
         return;
       }
 
       const result = await response.json();
-      localStorage.setItem("token", result["token"]);
+      console.log(result)
       router.push('/');
     } catch (err) {
       console.error('Request failed:', err);

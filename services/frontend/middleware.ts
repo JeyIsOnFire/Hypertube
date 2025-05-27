@@ -8,6 +8,15 @@ const DEFAULT_LOCALE = 'fr';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const token = request.cookies.get('token')?.value;
+  console.log(pathname);
+  console.log(token);
+  if (pathname.startsWith('/fr/auth')) {
+    if (token) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
   // Ignorer les fichiers statiques et l'API
   if (PUBLIC_FILE.test(pathname) || pathname.startsWith('/api') || pathname.startsWith('/_next')) {
     return NextResponse.next();
