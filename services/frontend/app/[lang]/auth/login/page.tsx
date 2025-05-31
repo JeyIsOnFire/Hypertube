@@ -1,0 +1,62 @@
+"use client";
+
+import React from 'react';
+import styles from './login.module.css'
+import { useState } from "react";
+import { useRouter } from 'next/navigation';
+
+export default function loginPage() {
+
+  const router = useRouter();
+
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  }
+
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      const response = await fetch('/users/register/', {
+        method: 'POST',
+        body: formData,
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Login failed:', errorData);
+        return;
+      }
+
+      const result = await response.json();
+      console.log(result)
+      router.push('/');
+    } catch (err) {
+      console.error('Request failed:', err);
+    }
+    console.log('Login successful:', formData);
+  };
+
+  return (
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <form id={styles.registerForm} onSubmit={handleSubmit}>
+        <h1 style={{fontSize: '3em'}}>Login</h1>
+        <input className="inputStyle1" name="username" type="text" placeholder="Username" onChange={handleChange}/>
+        <input className="inputStyle1" name="password" type="password" placeholder="Password" onChange={handleChange}/>
+
+        <button style={{background: 'green', padding: '10px', borderRadius: '5px'}} type="submit">Login</button>
+        <a>You don't have an account ?</a>
+      </form>
+    </div>
+  );
+}

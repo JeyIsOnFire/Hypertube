@@ -1,4 +1,4 @@
-# services/backend-user/app/urls.py
+# services/backend_user/app/urls.py
 from django.contrib import admin
 from django.urls import path, include
 

@@ -1,4 +1,4 @@
-# services/backend-user/users/urls.py
+# services/backend_user/users/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import UserViewSet, RegisterView, UserUpdateView, ProfileView

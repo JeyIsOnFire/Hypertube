@@ -1,4 +1,4 @@
-# services/backend-user/users/permissions.py
+# services/backend_user/users/permissions.py
 from rest_framework import permissions
 
 

@@ -1,4 +1,4 @@
-# services/backend-user/users/models.py
+# services/backend_user/users/models.py
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 

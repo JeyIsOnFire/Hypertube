@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Starting backend-user container..."
+echo "Starting backend_user container..."
 
 echo "⚙️  Running migrations..."
 python manage.py makemigrations users
