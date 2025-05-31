@@ -2,67 +2,55 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 
-const PUBLIC_FILE = /\.(.*)$/;
 const SUPPORTED_LOCALES = ['fr', 'en'];
 const DEFAULT_LOCALE = 'fr';
-let LOCAL: string;
-const tmp_env = "django-insecure-)gihwu0k6z0aisy31^z#_9go(2fg))2e)(quptz!$lf*1pk+!5"
+const tmp_env = "django-insecure-)gihwu0k6z0aisy31^z#_9go(2fg))2e)(quptz!$lf*1pk+!5";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('access_token')?.value;
-  let isTokenValid: boolean = false;
+  let isTokenValid = false;
 
-  // Vérifier si la langue est déjà présente dans l'URL (/fr, /en)
-  const pathnameIsMissingLocale = SUPPORTED_LOCALES.every(
-    (locale) => !pathname.startsWith(`/${locale}`)
+  const currentLocale = SUPPORTED_LOCALES.find((locale) =>
+    pathname.startsWith(`/${locale}`)
   );
 
-  // Si la langue est absente dans l'URL, on effectue la redirection
-  if (pathnameIsMissingLocale) {
-    // 1. Vérifier si un cookie est déjà défini
-    const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
+  const locale =
+    currentLocale ||
+    request.cookies.get('NEXT_LOCALE')?.value ||
+    request.headers.get('accept-language')?.split(',')[0].split('-')[0] ||
+    DEFAULT_LOCALE;
 
-    // 2. Utiliser la langue du navigateur (accept-language)
-    const acceptLang = request.headers.get('accept-language');
-    const preferredLang = acceptLang?.split(',')[0].split('-')[0];
-
-    // Déterminer la langue à utiliser
-    LOCAL =
-      cookieLocale && SUPPORTED_LOCALES.includes(cookieLocale)
-        ? cookieLocale
-        : preferredLang && SUPPORTED_LOCALES.includes(preferredLang)
-        ? preferredLang
-        : DEFAULT_LOCALE;
-
+  // Redirect if locale is missing
+  if (!currentLocale) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${LOCAL}${pathname === '/' ? '' : pathname}`;
-
+    url.pathname = `/${locale}${pathname}`;
     const response = NextResponse.redirect(url);
-    response.cookies.set('NEXT_LOCALE', LOCAL, { path: '/' });
-
+    response.cookies.set('NEXT_LOCALE', locale, { path: '/' });
     return response;
   }
 
-  //If there is no access token, redirection to login page
-  if (!token)
-    return NextResponse.redirect(new URL(`${LOCAL}/auth/login`, request.url));
-
-  //If there is an access token, check the validity
-  try {
+  // Validate token
+  if (token) {
+    try {
       jwt.verify(token, tmp_env);
       isTokenValid = true;
-  } catch {
-    request.cookies.remove('access_token');
+    } catch {
+      request.cookies.set('access_token', '', { path: '/', maxAge: 0 });
+    }
   }
 
-  if (pathname.startsWith(`${LOCAL}/auth/`) && isTokenValid)
-      return NextResponse.redirect(new URL('/', request.url));
+  const authPath = pathname.startsWith(`/${locale}/auth`);
 
-  if (!pathname.startsWith(`${LOCAL}/auth/`) && !isTokenValid)
-      return NextResponse.redirect(new URL(`${LOCAL}/auth/login`, request.url));
+  if (authPath && isTokenValid)
+    return NextResponse.redirect(new URL(`/${locale}/`, request.url));
 
-  // Si la langue est déjà présente et correcte, passer au suivant
+  if (!authPath && !isTokenValid) {
+    return NextResponse.redirect(
+      new URL(`/${locale}/auth/login`, request.url)
+    );
+  }
+
   return NextResponse.next();
 }
 
