@@ -21,7 +21,9 @@ async def get_connection():
                     password=os.getenv("POSTGRES_PASSWORD"),
                     database=os.getenv("POSTGRES_DB"),
                     host=os.getenv("POSTGRES_HOST"),
-                    port=5432
+                    port=5432,
+                    min_size=1,
+                    max_size=20,
                 )
             break
         except Exception as e:

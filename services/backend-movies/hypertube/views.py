@@ -33,6 +33,8 @@ def fetch_with_scraper(request, movie_data):
         scraper_url = f"http://backend-scraper:8000/search?query="
         formatted_for_scrap = []
         for movie in movie_data['results']:
+            if not movie.get('original_title') or not movie.get('release_date'):
+                continue
             movie_name = movie['original_title']
             movie_year = movie['release_date'][:4]
             if movie_name:
