@@ -213,7 +213,7 @@ async def search(request: Request):
                 print("Keyword not in keywords")
                 continue
             await save_in_database(result)
-            if result["keyword"][:-4].strip() not in ret:
+            if result["keyword"].strip() not in ret:
                 ret.append(result["keyword"].strip())
         print("Final results:", ret)
         return ret
