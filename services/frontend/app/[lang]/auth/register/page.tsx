@@ -1,9 +1,10 @@
 "use client";
 
 import React from 'react';
-import styles from './register.module.css'
+import styles from '../auth.module.css'
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function registerPage() {
 
@@ -72,7 +73,7 @@ export default function registerPage() {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <form id={styles.registerForm} onSubmit={handleSubmit}>
+      <form id={styles.mainForm} onSubmit={handleSubmit}>
         <h1 style={{fontSize: '3em'}}>Register</h1>
         <input className="inputStyle1" name="username" type="text" placeholder="Username" onChange={handleChange}/>
         <input className="inputStyle1" name="password" type="password" placeholder="Password" onChange={handleChange}/>
@@ -102,7 +103,7 @@ export default function registerPage() {
             <input className="uploadInputFile" type="file" name="profilePicture" accept="image/*" onChange={handleChange}/>
         </span>
         <button style={{background: 'green', padding: '10px', borderRadius: '5px'}} type="submit">Register</button>
-        <a>Already register ?</a>
+        <Link href="/auth/login">Already register ?</Link>
       </form>
     </div>
   );

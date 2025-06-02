@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 const SUPPORTED_LOCALES = ['fr', 'en'];
 const DEFAULT_LOCALE = 'fr';
 const tmp_env = "django-insecure-)gihwu0k6z0aisy31^z#_9go(2fg))2e)(quptz!$lf*1pk+!5";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('access_token')?.value;
   let isTokenValid = false;
@@ -32,12 +32,9 @@ export function middleware(request: NextRequest) {
 
   // Validate token
   if (token) {
-    try {
-      jwt.verify(token, tmp_env);
+    const payload = await verifyToken(token);
+    if (payload)
       isTokenValid = true;
-    } catch {
-      request.cookies.set('access_token', '', { path: '/', maxAge: 0 });
-    }
   }
 
   const authPath = pathname.startsWith(`/${locale}/auth`);
@@ -52,6 +49,17 @@ export function middleware(request: NextRequest) {
   }
 
   return NextResponse.next();
+}
+
+async function verifyToken(token: string) {
+  try {
+    const secretKey = new TextEncoder().encode(tmp_env);
+    const { payload } = await jwtVerify(token, secretKey);
+    return payload;
+  } catch (err) {
+    console.error("JWT verification failed:", err.message);
+    return null;
+  }
 }
 
 export const config = {

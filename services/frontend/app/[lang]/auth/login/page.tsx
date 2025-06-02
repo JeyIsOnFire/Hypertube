@@ -1,9 +1,10 @@
 "use client";
 
 import React from 'react';
-import styles from './login.module.css'
+import styles from '../auth.module.css'
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function loginPage() {
 
@@ -49,13 +50,13 @@ export default function loginPage() {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <form id={styles.registerForm} onSubmit={handleSubmit}>
+      <form id={styles.mainForm} onSubmit={handleSubmit}>
         <h1 style={{fontSize: '3em'}}>Login</h1>
         <input className="inputStyle1" name="username" type="text" placeholder="Username" onChange={handleChange}/>
         <input className="inputStyle1" name="password" type="password" placeholder="Password" onChange={handleChange}/>
 
         <button style={{background: 'green', padding: '10px', borderRadius: '5px'}} type="submit">Login</button>
-        <a>You don't have an account ?</a>
+        <Link href="/auth/register">You don't have an account ?</Link>
       </form>
     </div>
   );
