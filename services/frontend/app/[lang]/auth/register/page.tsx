@@ -68,7 +68,6 @@ export default function registerPage() {
     } catch (err) {
       console.error('Request failed:', err);
     }
-    console.log('Registration successful:', dataToSend);
   };
 
   return (

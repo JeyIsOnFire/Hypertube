@@ -24,12 +24,26 @@ export default function loginPage() {
   }
 
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const form = event.target as HTMLFormElement;
+    const username = (form.elements.namedItem('username') as HTMLInputElement).value;
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+    const dataToSend = {
+      username,
+      password
+    };
+
+    console.log(dataToSend)
+
     try {
-      const response = await fetch('/users/register/', {
+      const response = await fetch('/users/login/', {
         method: 'POST',
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend),
         credentials: "include"
       });
 
@@ -43,9 +57,9 @@ export default function loginPage() {
       console.log(result)
       router.push('/');
     } catch (err) {
-      console.error('Request failed:', err);
+      console.error('Login failed:', err);
     }
-    console.log('Login successful:', formData);
+    console.log('Login:', dataToSend);
   };
 
   return (

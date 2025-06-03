@@ -1,4 +1,5 @@
 # services/backend_user/users/views.py
+from django.contrib.auth import authenticate
 from rest_framework import viewsets, generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
@@ -42,6 +43,19 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         return generate_response_with_token(user, 150000)
 
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response({'success': False}, status=status.HTTP_200_OK)
+
+        return generate_response_with_token(user, 150000)
 
 class UserUpdateView(generics.UpdateAPIView):
     serializer_class = UserUpdateSerializer

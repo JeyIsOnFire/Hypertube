@@ -14,7 +14,6 @@ class JWTAuthentication(BaseAuthentication):
         token = request.COOKIES.get('access_token')
         if not token:
             return None
-
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
@@ -26,8 +25,7 @@ class JWTAuthentication(BaseAuthentication):
             user = User.objects.get(id=payload['user_id'])
         except User.DoesNotExist:
             raise AuthenticationFailed('User not found')
-
-        return (user, None)
+        return user, None
 
 def generate_token(user):
     payload = {
@@ -47,6 +45,5 @@ def generate_response_with_token(user, delay):
         value=generate_token(user),
         httponly=True,
         max_age=delay
-
     )
     return response
