@@ -68,7 +68,7 @@ export default function registerPage() {
 
         <div style={{display: 'flex', gap: '15px'}}>
           <label className="custom-radio">
-            <input type="radio" name="preferredLanguage" value="eng" defaultChecked onChange={handleChange}/>
+            <input type="radio" name="preferredLanguage" value="en" defaultChecked onChange={handleChange}/>
             <span className="radio-mark"></span>
             English
           </label>
