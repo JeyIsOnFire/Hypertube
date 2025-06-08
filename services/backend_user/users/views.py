@@ -66,8 +66,15 @@ class UserUpdateView(generics.UpdateAPIView):
 
 
 class ProfileView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = [JWTAuthentication]
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
+    def get(self, request):
+        print(request)
+        print("COOKIES:", request.COOKIES)
+        print("USER:", request.user)
+        user = request.user
+        serializer = self.serializer_class(user)
+        print(serializer)
+        return Response(serializer.data)
