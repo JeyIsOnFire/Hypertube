@@ -5,6 +5,7 @@ import styles from '../auth.module.css'
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {postData} from "@/lib/fetch-api";
 
 export default function loginPage() {
 
@@ -26,27 +27,9 @@ export default function loginPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    try {
-      const response = await fetch('/users/login/', {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-        credentials: "include"
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log('Login failed:', errorData);
-        return;
-      }
-
-      const result = await response.json();
-      console.log(result)
+    const isValid: boolean = await postData("/users/login/", JSON.stringify(formData))
+    if (isValid) {
       router.push('/');
-    } catch (err) {
-      console.log('Login failed:', err);
     }
   };
 

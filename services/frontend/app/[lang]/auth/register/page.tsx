@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { convertToFormData } from '@/lib/utils'
+import {postData} from "@/lib/fetch-api";
 
 export default function registerPage() {
 
@@ -18,7 +19,7 @@ export default function registerPage() {
     email: "",
     first_name: "",
     last_name: "",
-    preferredLanguage: "eng",
+    preferred_language: "en",
     profilePicture: null as File | null,
   });
 
@@ -33,24 +34,9 @@ export default function registerPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const dataToSend = convertToFormData(formData);
-    try {
-      const response = await fetch('/users/register/', {
-        method: 'POST',
-        body: dataToSend,
-        credentials: "include"
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Registration failed:', errorData);
-        return;
-      }
-
-      const result = await response.json();
-      console.log(result)
-      router.push('/');
-    } catch (err) {
-      console.error('Request failed:', err);
+    const isValid: boolean = await postData("/users/register/", dataToSend);
+    if (isValid) {
+        router.push('/');
     }
   };
 
@@ -68,13 +54,13 @@ export default function registerPage() {
 
         <div style={{display: 'flex', gap: '15px'}}>
           <label className="custom-radio">
-            <input type="radio" name="preferredLanguage" value="en" defaultChecked onChange={handleChange}/>
+            <input type="radio" name="preferred_language" value="en" defaultChecked onChange={handleChange}/>
             <span className="radio-mark"></span>
             English
           </label>
 
           <label className="custom-radio">
-            <input type="radio" name="preferredLanguage" value="fr" onChange={handleChange}/>
+            <input type="radio" name="preferred_language" value="fr" onChange={handleChange}/>
             <span className="radio-mark"></span>
             French
           </label>

@@ -6,9 +6,9 @@ import React, {useEffect, useState} from "react";
 type User = {
   username?: string;
   email?: string;
-  firstname?: string;
-  lastname?: string;
-  language?: string;
+  first_name?: string;
+  last_name?: string;
+  preferred_language?: string;
   avatarUrl?: string | null;
 }
 
@@ -37,9 +37,9 @@ export default function accountPage() {
             const user: User = {
               username: result.username,
               email: result.email,
-              firstname: result.first_name,
-              lastname: result.last_name,
-              language: result.preferred_language,
+              first_name: result.first_name,
+              last_name: result.last_name,
+              preferred_language: result.preferred_language,
               avatarUrl: result.profile_picture,
             };
             setUser(user);
@@ -62,27 +62,6 @@ export default function accountPage() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        try {
-          const response = await fetch('/users/login/', {
-            method: 'POST',
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(userInfos),
-            credentials: "include"
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.log('Account update failed:', errorData);
-            return;
-          }
-
-          const result = await response.json();
-          console.log(result)
-        } catch (err) {
-          console.log('Account update failed:', err);
-        }
       };
 
     return (
@@ -90,8 +69,8 @@ export default function accountPage() {
             <h1 id={styles.mainTitle}>Your account</h1>
             <input className="inputStyle1" name="username" type="text" placeholder="Username" value={userInfos.username ?? ''} onChange={handleChange}/>
             <input className="inputStyle1" name="email" type="email" placeholder="Email" value={userInfos.email ?? ''} onChange={handleChange}/>
-            <input className="inputStyle1" name="firstname" type="text" placeholder="First Name" value={userInfos.firstname ?? ''} onChange={handleChange}/>
-            <input className="inputStyle1" name="lastname" type="text" placeholder="Last Name" value={userInfos.lastname ?? ''} onChange={handleChange}/>
+            <input className="inputStyle1" name="first_name" type="text" placeholder="First Name" value={userInfos.firstname ?? ''} onChange={handleChange}/>
+            <input className="inputStyle1" name="last_name" type="text" placeholder="Last Name" value={userInfos.lastname ?? ''} onChange={handleChange}/>
             <input className="inputStyle1" name="password" type="password" placeholder="Change your password" onChange={handleChange}/>
             <input className="inputStyle1" name="confirmPassword" type="password" placeholder="Password confirmation" onChange={handleChange}/>
             <fieldset>
@@ -99,13 +78,13 @@ export default function accountPage() {
 
                 <div style={{display: 'flex', gap: '15px'}}>
                     <label className="custom-radio">
-                        <input type="radio" name="preferredLanguage" value="en" checked={userInfos.language === 'en'} onChange={handleChange}/>
+                        <input type="radio" name="preferred_language" value="en" checked={userInfos.language === 'en'} onChange={handleChange}/>
                         <span className="radio-mark"></span>
                         English
                     </label>
 
                     <label className="custom-radio">
-                        <input type="radio" name="preferredLanguage" value="fr" checked={userInfos.language === 'fr'} onChange={handleChange}/>
+                        <input type="radio" name="preferred_language" value="fr" checked={userInfos.language === 'fr'} onChange={handleChange}/>
                         <span className="radio-mark"></span>
                         French
                     </label>

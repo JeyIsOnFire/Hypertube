@@ -14,3 +14,33 @@ export const fetchApi = async (endpoint: string) => {
   }
 };
 
+/*
+** If the function got a 403 error (unauthorized) the logout function will be called (not implemented yet).
+** Credentials MUST BE provided (user must be logged in).
+*/
+export async function postData(url: string, data: any) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: data instanceof FormData ? undefined : {
+          "Content-Type": "application/json",
+        },
+        body: data,
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log(`Error when POST on URL ${url}: ${errorData}`);
+        return false;
+      }
+
+      const result = await response.json();
+      console.log(`Successfully POST on URL ${url}: ${result}`);
+      return true;
+    } catch (err) {
+      console.log(`Error when POST on URL ${url}: ${err}`);
+      return false;
+    }
+}
+
