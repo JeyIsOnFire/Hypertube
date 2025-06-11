@@ -61,8 +61,15 @@ class UserUpdateView(generics.UpdateAPIView):
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
+    def post(self, request):
+        user = request.user
+        serializer = self.serializer_class(user, data=request.data, partial=True)
+
+        if not serializer.is_valid():
+            return Response({'success': False}, status=status.HTTP_200_OK)
+
+        serializer.save()
+        return Response({'success': True}, status=status.HTTP_200_OK)
 
 
 class ProfileView(APIView):
@@ -71,10 +78,6 @@ class ProfileView(APIView):
     serializer_class = UserSerializer
 
     def get(self, request):
-        print(request)
-        print("COOKIES:", request.COOKIES)
-        print("USER:", request.user)
         user = request.user
         serializer = self.serializer_class(user)
-        print(serializer)
         return Response(serializer.data)
