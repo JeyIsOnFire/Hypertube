@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 
 const SUPPORTED_LOCALES = ['fr', 'en'];
 const DEFAULT_LOCALE = 'fr';
-const tmp_env = "django-insecure-)gihwu0k6z0aisy31^z#_9go(2fg))2e)(quptz!$lf*1pk+!5";
+const JWT_KEY = process.env.JWT_KEY;
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -53,7 +53,7 @@ export async function middleware(request: NextRequest) {
 
 async function verifyToken(token: string) {
   try {
-    const secretKey = new TextEncoder().encode(tmp_env);
+    const secretKey = new TextEncoder().encode(JWT_KEY);
     const { payload } = await jwtVerify(token, secretKey);
     return payload;
   } catch (err) {

@@ -3,8 +3,10 @@ WORKDIR /app
 # Set environment variables
 ARG NEXT_PUBLIC_HOSTNAME
 ARG NODE_ENV
+ARG JWT_KEY
 ENV NODE_ENV=${NODE_ENV:-production}
 ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+ENV JWT_KEY=${JWT_KEY}
 # Install dependencies only when needed
 COPY package*.json ./
 # Install production dependencies
@@ -20,8 +22,10 @@ WORKDIR /app
 # Set environment variables
 ARG NEXT_PUBLIC_HOSTNAME
 ARG NODE_ENV
+ARG JWT_KEY
 ENV NODE_ENV=${NODE_ENV:-production}
 ENV NEXT_PUBLIC_HOSTNAME=${NEXT_PUBLIC_HOSTNAME:-https://localhost}
+ENV JWT_KEY=${JWT_KEY}
 
 COPY --from=builder /app /app
 
