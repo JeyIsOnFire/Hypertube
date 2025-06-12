@@ -56,3 +56,69 @@ footer {
   }
 }
 
+.inputStyle1 {
+  color: blanchedalmond;
+  padding: 10px;
+  width: 90%;
+  max-width: 450px;
+  background-color: var(--dark);
+  border-radius: 5px;
+}
+
+.inputStyle1:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--orange);
+}
+
+/* Input file */
+.uploadInputFile {
+  padding: 10px;
+  color: var(--beige);
+  background-color: var(--dark);
+}
+
+.uploadInputFile:focus {
+  outline: 2px dashed var(--orange);
+  outline-offset: 2px;
+}
+
+.uploadInputFile::file-selector-button {
+  background: var(--orange);
+  color: var(--beige);
+}
+
+/* Radio button */
+.custom-radio {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  font-family: sans-serif;
+}
+
+.custom-radio input[type="radio"] {
+  opacity: 0;
+  position: absolute;
+}
+
+.radio-mark {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--dark, #222);
+  border-radius: 50%;
+  margin-right: 5px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.custom-radio input[type="radio"]:checked + .radio-mark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: var(--dark, #222);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}

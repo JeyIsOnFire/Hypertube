@@ -1,0 +1,29 @@
+#mainForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#mainTitle {
+    font-size: 3em;
+}
+
+.button {
+    max-width: 450px;
+    width: 90%;
+    background-color: var(--orange);
+    color: var(--beige);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.button:disabled {
+    max-width: 450px;
+    width: 90%;
+    background-color: var(--orange);
+    color: var(--beige);
+    opacity: 0.6;
+    padding: 10px;
+    border-radius: 5px;
+}

@@ -18,6 +18,8 @@ const en = {
   'production': 'Production',
   'watchnow': 'Watch Now',
   'searchButton': 'Search',
+  'loginSuccess': 'Login successfully',
+  'loginError': 'Username or password is incorrect',
 }
 
 export default en;

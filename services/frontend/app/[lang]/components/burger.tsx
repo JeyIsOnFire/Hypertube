@@ -3,6 +3,7 @@ import styles from './burger.module.css';
 import translations from '@/locales';
 import LanguageSwitcher from './language-switcher';
 import { Monoton } from 'next/font/google';
+import Link from "next/link";
 
 const monoton = Monoton({ subsets: ['latin'], weight: '400' });
 
@@ -37,11 +38,10 @@ const Burger = ({ lang }: HeaderProps) => {
           <LanguageSwitcher />
         </div>
         <div className={`${monoton.className} ${styles.nav}`}>
-        <a href="#">{t.home}</a>
+        <Link href="/">{t.home}</Link>
         <a href="#">{t.movies}</a>
         <a href="#">{t.shows}</a>
-        <a href="#">{t.trending}</a>
-        <a href="#">{t.myaccount}</a>
+        <Link href="/account/">{t.myaccount}</Link>
         </div>
       </div>
 

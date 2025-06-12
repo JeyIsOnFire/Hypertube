@@ -1,4 +1,4 @@
-# services/backend-user/users/serializers.py
+# services/backend_user/users/serializers.py
 from rest_framework import serializers
 from .models import User
 from django.contrib.auth.password_validation import validate_password
@@ -31,9 +31,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'password']
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'preferred_language']
 
     def create(self, validated_data):
+        print("Creating user with data:", validated_data)
         return User.objects.create_user(**validated_data)
 
 

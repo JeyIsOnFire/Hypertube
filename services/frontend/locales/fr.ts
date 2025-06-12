@@ -18,6 +18,8 @@ const fr = {
   'production': 'Production',
   'watchnow': 'Regarder maintenant',
   'searchButton': 'Rechercher',
+  'loginSuccess': 'Connexion reussie',
+  'loginError': 'Nom d\'utilisateur ou mot de passe incorrect',
 }
 
 export default fr;
