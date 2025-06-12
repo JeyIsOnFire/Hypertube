@@ -36,7 +36,9 @@ export async function postData(url: string, data: any) {
       }
 
       const result = await response.json();
-      console.log(`Successfully POST on URL ${url}: ${result}`);
+      if (!result.success) return false;
+
+      console.log(`Successfully POST on URL ${url}: ${JSON.stringify(result)}`);
       return true;
     } catch (err) {
       console.log(`Error when POST on URL ${url}: ${err}`);

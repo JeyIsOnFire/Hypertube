@@ -4,6 +4,7 @@ import "./globals.css";
 import styles from './components/header.module.css';
 import Header from './components/header'
 import getTranslations from '@/lib/getTranslations';
+import {ToasterProvider} from "@/app/provider/ToasterProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ToasterProvider />
         <Header lang={lang as 'en' | 'fr'} />
         {children}
         <footer className={styles.footer}>{t.rightsreserved}</footer>
