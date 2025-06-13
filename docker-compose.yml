@@ -22,6 +22,7 @@ services:
       args:
         NODE_ENV: development
         NEXT_PUBLIC_HOSTNAME: ${NEXT_PUBLIC_HOSTNAME}
+        JWT_KEY: ${JWT_KEY}
     expose:
       - 4000
     volumes:

@@ -8,7 +8,7 @@ from django.contrib import admin
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY_BACKEND_USER")
+SECRET_KEY = os.getenv("JWT_KEY")
 if not SECRET_KEY:
     raise Exception("SECRET_KEY not found in environment")
 
