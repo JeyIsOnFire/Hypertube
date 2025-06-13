@@ -59,6 +59,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO role_users, role_movies;
 
 REVOKE CREATE ON SCHEMA public FROM PUBLIC, backend_user, backend_movies, backend_scraper;
+REVOKE USAGE  ON SCHEMA cron TO backend_user, backend_movies, backend_scraper;
 EOSQL
 
 echo "Grants applied successfully."

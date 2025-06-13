@@ -29,6 +29,7 @@ END
 -- granting permissions on backend super-users
 GRANT CREATE ON SCHEMA public TO backend_user, backend_movies, backend_scraper;
 GRANT USAGE  ON SCHEMA public TO backend_user, backend_movies, backend_scraper;
+GRANT USAGE  ON SCHEMA cron TO backend_user, backend_movies, backend_scraper;
 GRANT USAGE  ON ALL SEQUENCES IN SCHEMA public TO backend_user, backend_movies, backend_scraper;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public

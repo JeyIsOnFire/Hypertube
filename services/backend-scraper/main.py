@@ -46,15 +46,14 @@ def is_latin_letters_only(s):
 
 async def fetch_html(client, url, delay=1.0):
     try:
-        await asyncio.sleep(delay)
+        if delay > 0:
+            await asyncio.sleep(delay)
         resp = await client.get(url, timeout=5)
-        # resp.raise_for_status()
         if resp.status_code != 200:
             print(f"Error fetching {url}: {resp.status_code}")
             return None
         return resp.text
     except Exception as e:
-        # print(f"Error fetching {url}: {e}")
         return None
 
 # async def get_torrent_details(client, relative_url):
@@ -68,12 +67,9 @@ async def fetch_html(client, url, delay=1.0):
 #         "magnet": magnet["href"] if magnet else None
 #     }
 
-async def search_torrents_1337x(keyword, client, get_magnet=True):
+async def search_torrents_1337x(keyword, client, background_tasks):
     url = f"{LEET_URL}/category-search/{keyword}/Movies/1/"
-    if get_magnet:
-        html = await fetch_html(client, url)
-    else:
-        html = await fetch_html(client, url, delay=0)
+    html = await fetch_html(client, url, delay=0)
     if not html:
         return []
     else:
@@ -81,28 +77,31 @@ async def search_torrents_1337x(keyword, client, get_magnet=True):
         soup = BeautifulSoup(html, "html.parser")
         links = soup.select("td.name > a:nth-of-type(2)")
         links = links[:5]
-        if get_magnet:
-            raise NotImplementedError("Magnet recovery is deprecated in this function")
-        else:
-            for a in links:
-                title = a.text.strip()
-                title = parse_movie_name(title, keyword[:-4])
-                if title:
-                    results.append({
-                        "title": title,
-                        "link": LEET_URL + a["href"],
-                        "source": "1337x",
-                        "keyword": keyword
-                    })
+        if links is None or len(links) == 0:
+            background_tasks.add_task(save_not_exists_in_database, {
+                "title": keyword[:-4].strip(),
+                "year": int(keyword[-4:]),
+                "link": url,
+                "source": "1337x",
+                "keyword": keyword
+            })
+            return []
+        for a in links:
+            title = a.text.strip()
+            title = parse_movie_name(title, keyword[:-4])
+            if title:
+                results.append({
+                    "title": title,
+                    "link": LEET_URL + a["href"],
+                    "source": "1337x",
+                    "keyword": keyword
+                })
         return results
 
 
-async def search_torrents_yts(keyword, client, get_magnet=True):
+async def search_torrents_yts(keyword, client, background_tasks):
     url = f"{YTS_URL}/browse-movies/{keyword}/all/all/0/latest/0/all"
-    if get_magnet:
-        html = await fetch_html(client, url)
-    else:
-        html = await fetch_html(client, url, delay=0)
+    html = await fetch_html(client, url, delay=0)
     if not html:
         return []
     else:
@@ -110,19 +109,25 @@ async def search_torrents_yts(keyword, client, get_magnet=True):
         soup = BeautifulSoup(html, "html.parser")
         links = soup.select("a.browse-movie-title")
         links = links[:5]
-        if get_magnet:
-            raise NotImplementedError("magnet recovery is deprecated in this function")
-        else:
-            for a in links:
-                title = a.text.strip()
-                title = parse_movie_name(title, keyword[:-4])
-                if title:
-                    results.append({
-                        "title": title,
-                        "link": a["href"],
-                        "source": "YTS",
-                        "keyword": keyword
-                    })
+        if links is None or len(links) == 0:
+            background_tasks.add_task(save_not_exists_in_database, {
+                "title": keyword[:-4].strip(),
+                "year": int(keyword[-4:]),
+                "link": url,
+                "source": "YTS",
+                "keyword": keyword
+            })
+            return []
+        for a in links:
+            title = a.text.strip()
+            title = parse_movie_name(title, keyword[:-4])
+            if title:
+                results.append({
+                    "title": title,
+                    "link": a["href"],
+                    "source": "YTS",
+                    "keyword": keyword
+                })
         return results
 
 def clean_title(raw_title):
@@ -165,6 +170,33 @@ async def search_in_database(keyword:str) -> str | None:
         print(f"Error searching in database: {e}")
         return None
 
+async def search_many_in_database(keywords:list[str]) -> dict[str, dict]:
+    db_pool = await get_connection()
+    async with db_pool.acquire() as conn:
+        names = [k[:-4].strip() for k in keywords]
+        years = [int(k[-4:]) for k in keywords]
+
+        query = """
+        SELECT * FROM movies_movie
+        WHERE (name, year) IN (
+            SELECT UNNEST($1::text[]), UNNEST($2::int[])
+        )
+        """
+
+        rows = await conn.fetch(query, names, years)
+        result = {}
+        for row in rows:
+            keyword = f"{row['name']} {row['year']}"
+            result[keyword] = {
+                "title": row["name"],
+                "year": row["year"],
+                "link": row["page"],
+                "source": row["origin"],
+                "keyword": keyword,
+                "exist": True
+            }
+        return result
+
 async def save_in_database(film_info:dict):
     db_pool = await get_connection()
     async with db_pool.acquire() as conn:
@@ -180,6 +212,49 @@ async def save_in_database(film_info:dict):
             """,
             film_info["keyword"][:-4].strip(), int(film_info["keyword"][-4:]), film_info["source"], film_info["link"]
         )
+
+async def save_not_exists_in_database(film_info:dict):
+    db_pool = await get_connection()
+    async with db_pool.acquire() as conn:
+        print("Saving not exists in database")
+        exist = await conn.fetch("SELECT * FROM movies_movie_not_exists WHERE name = $1 AND year = $2 AND origin = $3", film_info["keyword"][:-4].strip(), int(film_info["keyword"][-4:]), film_info["source"])
+        if exist:
+            print("Already exists in not exists database")
+            return
+        await conn.execute(
+            """
+            INSERT INTO movies_movie_not_exists (name, year, origin, page)
+            VALUES ($1, $2, $3, $4)
+            """,
+            film_info["keyword"][:-4].strip(), int(film_info["keyword"][-4:]), film_info["source"], film_info["link"]
+        )
+
+async def search_many_not_exists_in_database(keywords:list[str]) -> dict[str, dict]:
+    db_pool = await get_connection()
+    async with db_pool.acquire() as conn:
+        names = [k[:-4].strip() for k in keywords]
+        years = [int(k[-4:]) for k in keywords]
+
+        query = """
+        SELECT * FROM movies_movie_not_exists
+        WHERE (name, year) IN (
+            SELECT UNNEST($1::text[]), UNNEST($2::int[])
+        )
+        """
+
+        rows = await conn.fetch(query, names, years)
+        result = {}
+        for row in rows:
+            keyword = f"{row['name']} {row['year']}"
+            result[keyword] = {
+                "title": row["name"],
+                "year": row["year"],
+                "link": row["page"],
+                "source": row["origin"],
+                "keyword": keyword,
+                "exist": False
+            }
+        return result
 
 @app.get("/search")
 async def search(request: Request, background_tasks: BackgroundTasks):
@@ -204,19 +279,28 @@ async def search(request: Request, background_tasks: BackgroundTasks):
         keywords = clean_keywords
         if len(keywords) == 0:
             raise HTTPException(status_code=400, detail="No valid keywords found")
-        for key in keywords:
-            tasks.append(search_in_database(key))
-        results = await asyncio.gather(*tasks)
-        tasks = []
+        # for key in keywords:
+        #     tasks.append(search_in_database(key))
+        # results = await asyncio.gather(*tasks)
+        # tasks = []
+        results = await search_many_in_database(keywords)
+        results_not_exists = await search_many_not_exists_in_database(keywords)
+        results.update(results_not_exists)
         for key in keywords:
             if key in results:
-                ret.append(key)
+                key_info = results[key]
+                if key_info["exist"] and key not in ret:
+                    ret.append(key)
                 continue
-            tasks.append(search_torrents_1337x(key, client=client, get_magnet=False))
-            tasks.append(search_torrents_yts(key, client=client, get_magnet=False))
+            tasks.append(search_torrents_1337x(key, client=client, background_tasks=background_tasks))
+            tasks.append(search_torrents_yts(key, client=client, background_tasks=background_tasks))
+        if len(tasks) == 0:
+            print("No tasks to run")
+            print("time taken for search:", time.time() - actual_time)    
+            return ret
         results = await asyncio.gather(*tasks)
-        unified_results = []
         print("time taken for search:", time.time() - actual_time)
+        unified_results = []
         actual_time = time.time()
         tasks = []
         for result in results:
