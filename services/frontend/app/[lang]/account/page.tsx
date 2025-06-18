@@ -3,6 +3,7 @@
 import styles from "@/app/[lang]/auth/auth.module.css";
 import React, {useEffect, useState} from "react";
 import {postData} from "@/lib/fetch-api";
+import toast from "react-hot-toast";
 
 type User = {
   username?: string;
@@ -64,10 +65,8 @@ export default function accountPage() {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const isValid: boolean = await postData('/users/update/', JSON.stringify(userInfos));
-        if (!isValid) {
-
-        }
-
+        if (isValid) toast.success("Account updated")
+        else toast.error("Error account update");
       };
 
     return (
