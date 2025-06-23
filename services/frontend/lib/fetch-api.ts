@@ -1,3 +1,5 @@
+import { toast } from "react-hot-toast";
+
 export const fetchApi = async (endpoint: string) => {
 
   try {
@@ -44,5 +46,12 @@ export async function postData(url: string, data: any) {
       console.log(`Error when POST on URL ${url}: ${err}`);
       return false;
     }
+}
+
+
+export async function logout() {
+  await postData('/users/logout/', {});
+  window.location.reload();
+  toast.success("Logout");
 }
 

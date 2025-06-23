@@ -57,6 +57,16 @@ class LoginView(APIView):
 
         return generate_response_with_token(user, 150000)
 
+
+class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        response = Response({'success': True})
+        response.delete_cookie('access_token')
+        return response
+
+
 class UserUpdateView(generics.UpdateAPIView):
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]

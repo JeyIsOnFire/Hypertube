@@ -14,3 +14,7 @@ export function convertToFormData(formData: {[key: string]: string | File | null
     }
     return formDataConvert;
 }
+
+export function isDataFilled(data: string[]): boolean {
+    return data.every((value) => value.trim() !== '')
+}
