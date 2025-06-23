@@ -38,14 +38,27 @@ export default function loginPage() {
     setFormData(initialFormData);
   };
 
-  return (
-    <form id={styles.mainForm} onSubmit={handleSubmit}>
-      <h1 id={styles.mainTitle}>Login</h1>
-      <input className="inputStyle1" name="username" type="text" placeholder="Username" value={formData.username} onChange={handleChange}/>
-      <input className="inputStyle1" name="password" type="password" placeholder="Password" value={formData.password} onChange={handleChange}/>
+  function OAuthLogin(event: React.FormEvent<HTMLFormElement>) {
+    console.log("salut");
+    const id = "u-s4t2ud-2c90b78954c87807b2c6a5381a3d1923e0737de30580e8b2a27f0ee0cdb97460";
+    const red = "https%3A%2F%2Flocalhost%3A8443%2Fusers%2Fconnect-oauth%2F"
+    const url = `https://api.intra.42.fr/oauth/authorize?client_id=${id}&redirect_uri=${red}&response_type=code`
 
-      <button className={styles.button} type="submit" disabled={!isDataFilled(Object.values(formData))}>Login</button>
-      <Link href="/auth/register">You don't have an account ?</Link>
-    </form>
+
+    window.location.href = url;
+  }
+
+  return (
+      <div>
+        <form id={styles.mainForm} onSubmit={handleSubmit}>
+          <h1 id={styles.mainTitle}>Login</h1>
+          <input className="inputStyle1" name="username" type="text" placeholder="Username" value={formData.username} onChange={handleChange}/>
+          <input className="inputStyle1" name="password" type="password" placeholder="Password" value={formData.password} onChange={handleChange}/>
+
+          <button className={styles.button} type="submit" disabled={!isDataFilled(Object.values(formData))}>Login</button>
+          <Link href="/auth/register">You don't have an account ?</Link>
+        </form>
+        <button onClick={OAuthLogin}>test</button>
+      </div>
   );
 }

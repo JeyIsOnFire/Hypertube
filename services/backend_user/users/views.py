@@ -64,7 +64,7 @@ class ConnectOAuthView(APIView):
     def get(self, request):
 
 
-        print("HI there")
+        print(request)
 
         return Response({'success': True}, status=status.HTTP_200_OK)
 
