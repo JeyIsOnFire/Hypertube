@@ -58,6 +58,17 @@ class LoginView(APIView):
         return generate_response_with_token(user, 150000)
 
 
+class ConnectOAuthView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+
+
+        print("HI there")
+
+        return Response({'success': True}, status=status.HTTP_200_OK)
+
+
 class LogoutView(APIView):
     permission_classes = [AllowAny]
 
