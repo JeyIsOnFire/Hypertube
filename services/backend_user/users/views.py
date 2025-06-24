@@ -13,7 +13,7 @@ from .serializers import UserUpdateSerializer, UserRegisterSerializer
 from .permissions import IsSelfOrReadOnly
 from .models import User
 
-from .utils import generate_response_with_token, JWTAuthentication, generate_redirection_with_token, oauth_42_get_user
+from .utils import generate_response_with_token, JWTAuthentication, generate_redirection_with_token
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -21,10 +21,9 @@ class OAuth:
     def get_user(self):
         pass
 
-
     def serialization_from_oauth(self, user_data):
-        if User.objects.filter(username=user_data["username"]).exists():
-            user = User.objects.get(username=user_data["username"])
+        if User.objects.filter(oauth_id=user_data["oauth_id"]).exists():
+            user = User.objects.get(oauth_id=user_data["oauth_id"])
         else:
             serializer = UserOAuthRegisterSerializer(data=user_data)
 
@@ -60,14 +59,13 @@ class OAuth42(OAuth):
             raise Exception(f"Failed to fetch user data: {response.text}")
 
         response = response.json()
-
+        print(response)
         user = {
+            "oauth_id": f"42-{response['id']}",
             "username": response['login'],
             "email": response['email'],
             "first_name": response['first_name'],
             "last_name": response['last_name'],
             "preferred_language": "en"
         }
-        print(user)
-
         return self.serialization_from_oauth(user)
