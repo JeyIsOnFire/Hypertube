@@ -37,6 +37,18 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         print("Creating user with data:", validated_data)
         return User.objects.create_user(**validated_data)
 
+class UserOAuthRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'preferred_language']
+
+    def create(self, validated_data):
+        user = User(**validated_data)
+        user.set_unusable_password()
+        user.save()
+        print("Creating OAuth user with data:", validated_data)
+        return user
+
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:

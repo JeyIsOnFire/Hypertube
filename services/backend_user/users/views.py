@@ -11,7 +11,7 @@ from .serializers import UserUpdateSerializer, UserRegisterSerializer
 from .permissions import IsSelfOrReadOnly
 from .models import User
 
-from .utils import generate_response_with_token, JWTAuthentication
+from .utils import generate_response_with_token, JWTAuthentication, generate_redirection_with_token, oauth_42_get_user
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -63,10 +63,15 @@ class ConnectOAuthView(APIView):
 
     def get(self, request):
 
+        code = request.GET.get('code')
 
-        print(request)
+        return oauth_42_get_user(code)
 
+        print(user_data)
         return Response({'success': True}, status=status.HTTP_200_OK)
+        user = None
+
+        return generate_redirection_with_token(user, 150000)
 
 
 class LogoutView(APIView):
