@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from .oauth import OAuth42
 from .serializers import UserSerializer, PublicUserSerializer
 from .serializers import UserUpdateSerializer, UserRegisterSerializer
 from .permissions import IsSelfOrReadOnly
@@ -62,15 +64,7 @@ class ConnectOAuthView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-
-        code = request.GET.get('code')
-
-        return oauth_42_get_user(code)
-
-        print(user_data)
-        return Response({'success': True}, status=status.HTTP_200_OK)
-        user = None
-
+        user = OAuth42(request.GET.get('code')).get_user()
         return generate_redirection_with_token(user, 150000)
 
 
