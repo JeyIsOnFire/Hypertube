@@ -21,7 +21,7 @@ class PublicUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name',
+        fields = ['oauth_id', 'id', 'username', 'email', 'first_name', 'last_name',
                   'profile_picture', 'preferred_language']
 
 

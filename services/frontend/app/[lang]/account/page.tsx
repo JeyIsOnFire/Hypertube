@@ -6,6 +6,7 @@ import {postData} from "@/lib/fetch-api";
 import toast from "react-hot-toast";
 
 type User = {
+  oauth?: boolean;
   username?: string;
   email?: string;
   first_name?: string;
@@ -37,6 +38,7 @@ export default function accountPage() {
 
             const result = await response.json();
             const user: User = {
+              oauth: result.oauth_id.length === 0,
               username: result.username,
               email: result.email,
               first_name: result.first_name,
@@ -45,7 +47,6 @@ export default function accountPage() {
               avatarUrl: result.profile_picture,
             };
             setUser(user);
-            console.log(userInfos);
           } catch (err) {
             console.error(err);
           }
@@ -76,8 +77,12 @@ export default function accountPage() {
             <input className="inputStyle1" name="email" type="email" placeholder="Email" value={userInfos.email ?? ''} onChange={handleChange}/>
             <input className="inputStyle1" name="first_name" type="text" placeholder="First Name" value={userInfos.first_name ?? ''} onChange={handleChange}/>
             <input className="inputStyle1" name="last_name" type="text" placeholder="Last Name" value={userInfos.last_name ?? ''} onChange={handleChange}/>
-            <input className="inputStyle1" name="password" type="password" placeholder="Change your password" onChange={handleChange}/>
-            <input className="inputStyle1" name="confirmPassword" type="password" placeholder="Password confirmation" onChange={handleChange}/>
+            {userInfos.oauth && (
+                <>
+                <input className="inputStyle1" name="password" type="password" placeholder="Change your password" onChange={handleChange}/>
+                <input className="inputStyle1" name="confirmPassword" type="password" placeholder="Password confirmation" onChange={handleChange}/>
+                </>
+            )}
             <fieldset>
                 <legend>Preferred language</legend>
 
@@ -99,7 +104,7 @@ export default function accountPage() {
               <div>Profile picture</div>
               <input className="uploadInputFile" type="file" name="profilePicture" accept="image/*" onChange={handleChange}/>
           </span>
-            <button style={{background: 'green', padding: '10px', borderRadius: '5px'}} type="submit">Update profile</button>
+            <button className={styles.button} type="submit">Update profile</button>
         </form>
     )
 }
