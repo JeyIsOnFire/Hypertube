@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .oauth import OAuth42, oauth_42_instance
+from .oauth import oauth_42_instance, oauth_google_instance, oauth_github_instance
 from .serializers import UserSerializer, PublicUserSerializer
 from .serializers import UserUpdateSerializer, UserRegisterSerializer
 from .permissions import IsSelfOrReadOnly
@@ -64,6 +64,18 @@ class LoginView(APIView):
 @require_GET
 def oauth_42(request):
     user = oauth_42_instance.get_user(request.GET.get('code'))
+    return generate_redirection_with_token(user, 150000)
+
+
+@require_GET
+def oauth_google(request):
+    user = oauth_google_instance.get_user(request.GET.get('code'))
+    return generate_redirection_with_token(user, 150000)
+
+
+@require_GET
+def oauth_github(request):
+    user = oauth_github_instance.get_user(request.GET.get('code'))
     return generate_redirection_with_token(user, 150000)
 
 

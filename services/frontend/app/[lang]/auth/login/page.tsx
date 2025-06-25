@@ -8,6 +8,7 @@ import Link from 'next/link';
 import {postData} from "@/lib/fetch-api";
 import toast from "react-hot-toast";
 import {isDataFilled} from "@/lib/utils";
+import OAuth from "@/app/[lang]/auth/oauth/page";
 
 export default function loginPage() {
 
@@ -53,9 +54,11 @@ export default function loginPage() {
           <input className="inputStyle1" name="password" type="password" placeholder="Password" value={formData.password} onChange={handleChange}/>
 
           <button className={styles.button} type="submit" disabled={!isDataFilled(Object.values(formData))}>Login</button>
+
+          <OAuth></OAuth>
+
           <Link href="/auth/register">You don't have an account ?</Link>
         </form>
-        <button onClick={OAuthLogin}>test</button>
       </div>
   );
 }
