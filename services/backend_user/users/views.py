@@ -1,5 +1,6 @@
 # services/backend_user/users/views.py
 from django.contrib.auth import authenticate
+from django.views.decorators.http import require_GET
 from rest_framework import viewsets, generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
@@ -7,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .oauth import OAuth42
+from .oauth import OAuth42, oauth_42_instance
 from .serializers import UserSerializer, PublicUserSerializer
 from .serializers import UserUpdateSerializer, UserRegisterSerializer
 from .permissions import IsSelfOrReadOnly
@@ -60,12 +61,10 @@ class LoginView(APIView):
         return generate_response_with_token(user, 150000)
 
 
-class ConnectOAuthView(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        user = OAuth42(request.GET.get('code')).get_user()
-        return generate_redirection_with_token(user, 150000)
+@require_GET
+def oauth_42(request):
+    user = oauth_42_instance.get_user(request.GET.get('code'))
+    return generate_redirection_with_token(user, 150000)
 
 
 class LogoutView(APIView):
