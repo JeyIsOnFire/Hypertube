@@ -1,7 +1,7 @@
 import styles from "./oauth.module.css"
 
 export default function OAuth() {
-    function OAuthLogin() {
+    function OAuth42() {
         const id = "u-s4t2ud-2c90b78954c87807b2c6a5381a3d1923e0737de30580e8b2a27f0ee0cdb97460";
         const red = "https://localhost:8443/users/oauth_42/"
         const url = `https://api.intra.42.fr/oauth/authorize?client_id=${id}&redirect_uri=${red}&response_type=code`
@@ -15,11 +15,19 @@ export default function OAuth() {
         window.location.href = url;
     }
 
+    function OAuthGithub() {
+        const id = "Ov23liRq6jwucAzgqs3c";
+        const red = "https://localhost:8443/users/oauth_github/"
+        const url = `https://github.com/login/oauth/authorize?client_id=${id}&redirect_uri=${red}&scope=user:email`
+        window.location.href = url;
+    }
+
     return (
         <div id={styles.oauthMain}>
             <h2 id={styles.title}>Or continue with</h2>
-            <div className={styles.customButton} onClick={OAuthLogin}><img className={styles.icon} src="/icon_42.png" alt="42 icon"/> <span>Continue with 42</span></div>
+            <div className={styles.customButton} onClick={OAuth42}><img className={styles.icon} src="/icon_42.png" alt="42 icon"/> <span>Continue with 42</span></div>
             <div className={styles.customButton} onClick={OAuthGoogle}><img className={styles.icon} src="/icon_google.png" alt="google icon"/> <span>Continue with Google</span></div>
+            <div className={styles.customButton} onClick={OAuthGithub}><img className={styles.icon} src="/icon_github.png" alt="github icon"/> <span>Continue with GitHub</span></div>
         </div>
     )
 }

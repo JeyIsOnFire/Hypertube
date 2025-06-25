@@ -137,16 +137,15 @@ class OAuthGoogle(OAuth):
 
 class OAuthGitHub(OAuth):
     def __init__(self):
-        self.client_id = os.getenv("OAUTH_GOOGLE_CLIENT")
-        self.client_secret = os.getenv("OAUTH_GOOGLE_SECRET")
-        self.redirect_uri = os.getenv("OAUTH_GOOGLE_REDIRECTION")
+        self.client_id = os.getenv("OAUTH_GITHUB_CLIENT")
+        self.client_secret = os.getenv("OAUTH_GITHUB_SECRET")
+        self.redirect_uri = os.getenv("OAUTH_GITHUB_REDIRECTION")
 
-        self.api_token_url = "https://oauth2.googleapis.com/token"
-        self.api_user_url = "https://www.googleapis.com/oauth2/v3/userinfo"
+        self.api_token_url = "https://github.com/login/oauth/access_token"
+        self.api_user_url = "https://api.github.com/user"
 
     def set_token(self, code):
         paylod = {
-            "grant_type": "authorization_code",
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "redirect_uri": self.redirect_uri,
@@ -154,8 +153,8 @@ class OAuthGitHub(OAuth):
         }
 
         response = requests.post(self.api_token_url,
-                                 headers={"Content-Type": "application/x-www-form-urlencoded"},
-                                 data=paylod)
+                                 headers={"Accept": "application/json"},
+                                 json=paylod)
 
         if response.status_code != 200:
             raise Exception(f"Failed to fetch user data: {response.text}")
@@ -173,12 +172,13 @@ class OAuthGitHub(OAuth):
 
         response = response.json()
         print(response)
+
         user = {
-            "oauth_id": f"google-{response['sub']}",
-            "username": response['given_name'] + response['family_name'],
-            "email": response['email'],
-            "first_name": response['given_name'],
-            "last_name": response['family_name'],
+            "oauth_id": f"github-{response['id']}",
+            "username": response['login'],
+            "email": response['email'] if response.get('email') else "email@private.com",
+            "first_name": response['name'] if response.get('name') else "Unknown",
+            "last_name": response['name'] if response.get('name') else "Unknown",
             "preferred_language": "en"
         }
         return self.serialization_from_oauth(user)
