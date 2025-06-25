@@ -6,6 +6,7 @@ from django.contrib import admin
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_URL = '/static/'
 
 load_dotenv()
 SECRET_KEY = os.getenv("JWT_KEY")

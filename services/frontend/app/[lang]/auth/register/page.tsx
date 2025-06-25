@@ -8,6 +8,7 @@ import Link from 'next/link';
 import {convertToFormData, isDataFilled} from '@/lib/utils'
 import {postData} from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import OAuth from "@/app/[lang]/auth/oauth/page";
 
 export default function registerPage() {
 
@@ -81,6 +82,9 @@ export default function registerPage() {
           <input className="uploadInputFile" type="file" name="profilePicture" accept="image/*" onChange={handleChange}/>
       </span>
       <button className={styles.button} type="submit" disabled={!isDataFilled(getValuesExceptFile())}>Register</button>
+
+      <OAuth></OAuth>
+
       <Link href="/auth/login">Already register ?</Link>
     </form>
   );

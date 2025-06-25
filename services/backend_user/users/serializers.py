@@ -21,7 +21,7 @@ class PublicUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name',
+        fields = ['oauth_id', 'id', 'username', 'email', 'first_name', 'last_name',
                   'profile_picture', 'preferred_language']
 
 
@@ -36,6 +36,20 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         print("Creating user with data:", validated_data)
         return User.objects.create_user(**validated_data)
+
+class UserOAuthRegisterSerializer(serializers.ModelSerializer):
+    oauth_id = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ['oauth_id', 'username', 'email', 'first_name', 'last_name', 'preferred_language']
+
+    def create(self, validated_data):
+        user = User(**validated_data)
+        user.set_unusable_password()
+        user.save()
+        print("Creating OAuth user with data:", validated_data)
+        return user
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

@@ -4,6 +4,7 @@ from django.db import models
 
 
 class User(AbstractUser):
+    oauth_id = models.CharField(unique=True)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=True, blank=False)
     first_name = models.CharField(max_length=150, blank=False)

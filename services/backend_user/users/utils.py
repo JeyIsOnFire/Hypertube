@@ -1,12 +1,15 @@
 from datetime import datetime, timedelta
 
 import jwt
+import requests
+from django.shortcuts import redirect
 from rest_framework.response import Response
 from rest_framework.authentication import BaseAuthentication
 from django.conf import settings
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from app import settings
 from users.models import User
+from users.serializers import UserRegisterSerializer, UserOAuthRegisterSerializer
 
 
 class JWTAuthentication(BaseAuthentication):
@@ -40,6 +43,17 @@ def generate_token(user):
 
 def generate_response_with_token(user, delay):
     response = Response({'success': True})
+    response.set_cookie(
+        key='access_token',
+        value=generate_token(user),
+        httponly=True,
+        max_age=delay
+    )
+    return response
+
+
+def generate_redirection_with_token(user, delay):
+    response = redirect("/")
     response.set_cookie(
         key='access_token',
         value=generate_token(user),

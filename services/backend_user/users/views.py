@@ -1,17 +1,20 @@
 # services/backend_user/users/views.py
 from django.contrib.auth import authenticate
+from django.views.decorators.http import require_GET
 from rest_framework import viewsets, generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from .oauth import oauth_42_instance, oauth_google_instance, oauth_github_instance
 from .serializers import UserSerializer, PublicUserSerializer
 from .serializers import UserUpdateSerializer, UserRegisterSerializer
 from .permissions import IsSelfOrReadOnly
 from .models import User
 
-from .utils import generate_response_with_token, JWTAuthentication
+from .utils import generate_response_with_token, JWTAuthentication, generate_redirection_with_token
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -56,6 +59,24 @@ class LoginView(APIView):
             return Response({'success': False}, status=status.HTTP_200_OK)
 
         return generate_response_with_token(user, 150000)
+
+
+@require_GET
+def oauth_42(request):
+    user = oauth_42_instance.get_user(request.GET.get('code'))
+    return generate_redirection_with_token(user, 150000)
+
+
+@require_GET
+def oauth_google(request):
+    user = oauth_google_instance.get_user(request.GET.get('code'))
+    return generate_redirection_with_token(user, 150000)
+
+
+@require_GET
+def oauth_github(request):
+    user = oauth_github_instance.get_user(request.GET.get('code'))
+    return generate_redirection_with_token(user, 150000)
 
 
 class LogoutView(APIView):
