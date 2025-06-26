@@ -39,13 +39,6 @@ export default function loginPage() {
     setFormData(initialFormData);
   };
 
-  function OAuthLogin(event: React.FormEvent<HTMLFormElement>) {
-    const id = "u-s4t2ud-2c90b78954c87807b2c6a5381a3d1923e0737de30580e8b2a27f0ee0cdb97460";
-    const red = "https://localhost:8443/users/oauth_42/"
-    const url = `https://api.intra.42.fr/oauth/authorize?client_id=${id}&redirect_uri=${red}&response_type=code`
-    window.location.href = url;
-  }
-
   return (
       <div>
         <form id={styles.mainForm} onSubmit={handleSubmit}>

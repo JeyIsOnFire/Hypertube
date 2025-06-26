@@ -1,5 +1,6 @@
 # services/backend_user/users/views.py
 from django.contrib.auth import authenticate
+from django.shortcuts import redirect
 from django.views.decorators.http import require_GET
 from rest_framework import viewsets, generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -64,18 +65,24 @@ class LoginView(APIView):
 @require_GET
 def oauth_42(request):
     user = oauth_42_instance.get_user(request.GET.get('code'))
+    if user is None:
+        return redirect("/")
     return generate_redirection_with_token(user, 150000)
 
 
 @require_GET
 def oauth_google(request):
     user = oauth_google_instance.get_user(request.GET.get('code'))
+    if user is None:
+        return redirect("/")
     return generate_redirection_with_token(user, 150000)
 
 
 @require_GET
 def oauth_github(request):
     user = oauth_github_instance.get_user(request.GET.get('code'))
+    if user is None:
+        return redirect("/")
     return generate_redirection_with_token(user, 150000)
 
 
