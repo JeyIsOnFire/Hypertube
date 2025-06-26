@@ -25,9 +25,18 @@ export default function OAuth() {
     return (
         <div id={styles.oauthMain}>
             <h2 id={styles.title}>Or continue with</h2>
-            <div className={styles.customButton} onClick={OAuth42}><img className={styles.icon} src="/icon_42.png" alt="42 icon"/> <span>Continue with 42</span></div>
-            <div className={styles.customButton} onClick={OAuthGoogle}><img className={styles.icon} src="/icon_google.png" alt="google icon"/> <span>Continue with Google</span></div>
-            <div className={styles.customButton} onClick={OAuthGithub}><img className={styles.icon} src="/icon_github.png" alt="github icon"/> <span>Continue with GitHub</span></div>
+            <button type="button" className={styles.customButton} onClick={OAuth42}>
+                <img className={styles.icon} src="/icon_42.png" alt="42 icon" />
+                <span>Sign in with 42</span>
+            </button>
+            <button type="button" className={styles.customButton} onClick={OAuthGoogle}>
+                <img className={styles.icon} src="/icon_google.png" alt="google icon" />
+                <span>Sign in with Google</span>
+            </button>
+            <button type="button" className={styles.customButton} onClick={OAuthGithub}>
+                <img className={styles.icon} src="/icon_github.png" alt="github icon" />
+                <span>Sign in with GitHub</span>
+            </button>
         </div>
     )
 }

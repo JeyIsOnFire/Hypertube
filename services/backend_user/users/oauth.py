@@ -14,11 +14,38 @@ class OAuth:
 
     api_token_url = None
     api_user_url = None
-    access_token = None
 
     @abstractmethod
-    def set_token(self, code):
+    def generate_payload(self, code):
         pass
+
+    def generate_access_token(self, headers, payload, payload_type="json"):
+        if payload_type == 'data':
+            response = requests.post(self.api_token_url,
+                                 headers=headers,
+                                 data=payload)
+        else:
+            response = requests.post(self.api_token_url,
+                                     headers=headers,
+                                     json=payload)
+
+        if response.status_code != 200:
+            print("OAuth: Access token failed")
+            return None
+
+        access_token = response.json()['access_token']
+        return access_token
+
+    def generate_user_data(self, access_token):
+        response = requests.get(self.api_user_url,
+                                headers={'Authorization': 'Bearer ' + access_token})
+
+        if response.status_code != 200:
+            print("OAuth: User data failed")
+            return None
+
+        response = response.json()
+        return response
 
     @abstractmethod
     def get_user(self, code):
@@ -46,8 +73,8 @@ class OAuth42(OAuth):
         self.api_token_url = "https://api.intra.42.fr/oauth/token"
         self.api_user_url = "https://api.intra.42.fr/v2/me"
 
-    def set_token(self, code):
-        paylod = {
+    def generate_payload(self, code):
+        return {
             "grant_type": "authorization_code",
             "client_id": self.client_id,
             "client_secret": self.client_secret,
@@ -55,32 +82,21 @@ class OAuth42(OAuth):
             "code": code
         }
 
-        response = requests.post(self.api_token_url,
-                                 headers={"Content-Type": "application/json"},
-                                 json=paylod)
-
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch user data: {response.text}")
-
-        self.access_token = response.json()['access_token']
-
     def get_user(self, code):
-        self.set_token(code)
+        payload = self.generate_payload(code)
+        access_token = self.generate_access_token({"Content-Type": "application/json"}, payload)
+        if access_token is None:
+            return None
+        user_data = self.generate_user_data(access_token)
+        if user_data is None:
+            return None
 
-        response = requests.get(self.api_user_url,
-                                headers={'Authorization': 'Bearer ' + self.access_token})
-
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch user data: {response.text}")
-
-        response = response.json()
-        print(response)
         user = {
-            "oauth_id": f"42-{response['id']}",
-            "username": response['login'],
-            "email": response['email'],
-            "first_name": response['first_name'],
-            "last_name": response['last_name'],
+            "oauth_id": f"42-{user_data['id']}",
+            "username": user_data['login'],
+            "email": user_data['email'],
+            "first_name": user_data['first_name'],
+            "last_name": user_data['last_name'],
             "preferred_language": "en"
         }
         return self.serialization_from_oauth(user)
@@ -95,8 +111,8 @@ class OAuthGoogle(OAuth):
         self.api_token_url = "https://oauth2.googleapis.com/token"
         self.api_user_url = "https://www.googleapis.com/oauth2/v3/userinfo"
 
-    def set_token(self, code):
-        paylod = {
+    def generate_payload(self, code):
+        return {
             "grant_type": "authorization_code",
             "client_id": self.client_id,
             "client_secret": self.client_secret,
@@ -104,32 +120,21 @@ class OAuthGoogle(OAuth):
             "code": code
         }
 
-        response = requests.post(self.api_token_url,
-                                 headers={"Content-Type": "application/x-www-form-urlencoded"},
-                                 data=paylod)
-
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch user data: {response.text}")
-
-        self.access_token = response.json()['access_token']
-
     def get_user(self, code):
-        self.set_token(code)
+        payload = self.generate_payload(code)
+        access_token = self.generate_access_token({"Content-Type": "application/x-www-form-urlencoded"}, payload, "data")
+        if access_token is None:
+            return None
+        user_data = self.generate_user_data(access_token)
+        if user_data is None:
+            return None
 
-        response = requests.get(self.api_user_url,
-                                headers={'Authorization': 'Bearer ' + self.access_token})
-
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch user data: {response.text}")
-
-        response = response.json()
-        print(response)
         user = {
-            "oauth_id": f"google-{response['sub']}",
-            "username": response['given_name'] + response['family_name'],
-            "email": response['email'],
-            "first_name": response['given_name'],
-            "last_name": response['family_name'],
+            "oauth_id": f"google-{user_data['sub']}",
+            "username": user_data['given_name'] + user_data['family_name'],
+            "email": user_data['email'],
+            "first_name": user_data['given_name'],
+            "last_name": user_data['family_name'],
             "preferred_language": "en"
         }
         return self.serialization_from_oauth(user)
@@ -144,41 +149,29 @@ class OAuthGitHub(OAuth):
         self.api_token_url = "https://github.com/login/oauth/access_token"
         self.api_user_url = "https://api.github.com/user"
 
-    def set_token(self, code):
-        paylod = {
+    def generate_payload(self, code):
+        return {
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "redirect_uri": self.redirect_uri,
             "code": code
         }
 
-        response = requests.post(self.api_token_url,
-                                 headers={"Accept": "application/json"},
-                                 json=paylod)
-
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch user data: {response.text}")
-
-        self.access_token = response.json()['access_token']
-
     def get_user(self, code):
-        self.set_token(code)
-
-        response = requests.get(self.api_user_url,
-                                headers={'Authorization': 'Bearer ' + self.access_token})
-
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch user data: {response.text}")
-
-        response = response.json()
-        print(response)
+        payload = self.generate_payload(code)
+        access_token = self.generate_access_token({"Accept": "application/json"}, payload)
+        if access_token is None:
+            return None
+        user_data = self.generate_user_data(access_token)
+        if user_data is None:
+            return None
 
         user = {
-            "oauth_id": f"github-{response['id']}",
-            "username": response['login'],
-            "email": response['email'] if response.get('email') else "email@private.com",
-            "first_name": response['name'] if response.get('name') else "Unknown",
-            "last_name": response['name'] if response.get('name') else "Unknown",
+            "oauth_id": f"github-{user_data['id']}",
+            "username": user_data['login'],
+            "email": user_data['email'] if user_data.get('email') else "email@private.com",
+            "first_name": user_data['name'] if user_data.get('name') else "Unknown",
+            "last_name": user_data['name'] if user_data.get('name') else "Unknown",
             "preferred_language": "en"
         }
         return self.serialization_from_oauth(user)
