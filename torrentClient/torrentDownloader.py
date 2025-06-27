@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 import aiohttp
 
 class Peer:
-    def __init__(self, ip:str, port:int):
+    def __init__(self, ip:str, port:int, torrent_infos:dict = None):
         if not isinstance(ip, str):
             raise TypeError("IP must be a string.")
         if not isinstance(port, int):
@@ -14,9 +14,17 @@ class Peer:
             raise ValueError("Port must be between 0 and 65535.")
         self.ip = ip
         self.port = port
+        self.peer_id = None
         self.reader = None
         self.writer = None
         self.status = "disconnected"
+        if torrent_infos is None:
+            raise ValueError("torrent_infos must be provided.")
+        if not isinstance(torrent_infos, dict):
+            raise TypeError("torrent_infos must be a dictionary.")
+        if "hash" not in torrent_infos or "peer_id" not in torrent_infos:
+            raise ValueError("torrent_infos must contain 'hash' and 'peer_id'.")
+        self.torrent_infos = torrent_infos
     
     def __str__(self):
         return f"Peer({self.ip}:{self.port})"
@@ -25,29 +33,103 @@ class Peer:
 
     async def handshake(self):
         try:
-            print(f"Connecting to peer {self.ip}:{self.port} for handshake...")
+            # print(f"Connecting to peer {self.ip}:{self.port} for handshake...")
             # Send handshake message
-            handshake_message = b'\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00' + self.torrent_infos["hash"] + self.torrent_infos["peer_id"].encode('utf-8')
+            reserved = bytearray(8)  # Reserved bytes, all set to 0
+            reserved[5] |= 0x10  # Set the extension bit for extended handshake
+            handshake_message = b'\x13BitTorrent protocol' + reserved + self.torrent_infos["hash"] + self.torrent_infos["peer_id"].encode('utf-8')
+            self.status = "handshake in progress"
+            # Wait for handshake response
+            if self.writer is None:
+                raise ValueError("Writer is not initialized, cannot send handshake.")
+            if self.reader is None:
+                raise ValueError("Reader is not initialized, cannot read handshake response.")
             self.writer.write(handshake_message)
+            # Drain the writer to ensure the message is sent
             await self.writer.drain()
+            # Update status
             self.status = "handshake sent"
-            print(f"Handshake sent to {self.ip}:{self.port}. Waiting for response...")
             
             # Wait for response
-            response = await self.reader.read(68)  # 68 bytes for handshake response
+            # response = await self.reader.read(68)
+            response = await asyncio.wait_for(self.reader.readexactly(68), timeout=5)
             if len(response) < 68:
                 raise ValueError("Invalid handshake response.")
+            protocol_length = response[0]
+            if protocol_length != 19:
+                raise ValueError("Invalid protocol length in handshake response.")
+            protocol_name = response[1:20]
+            if protocol_name != b'BitTorrent protocol':
+                raise ValueError("Invalid protocol name in handshake response.")
+            reserved = response[20:28]
+            if len(reserved) != 8 and reserved != b'\x00' * 8:
+                raise ValueError("Invalid reserved bytes in handshake response.")
+            info_hash = response[28:48]
+            peer_id = response[48:68]
+            if info_hash != self.torrent_infos["hash"]:
+                raise ValueError("Handshake failed, info_hash does not match.")
+            # Update torrent infos with peer_id
+            if peer_id == self.torrent_infos["peer_id"].encode('utf-8'):
+                raise ValueError("Handshake failed, peer_id is the same as ours.")
+            self.peer_id = peer_id.decode('utf-8')
             self.status = "connected"
+            try:
+                await self.extend_handshake()
+            except Exception as e:
+                print(f"Failed to extend handshake with peer {self.ip}:{self.port}: {e}")
+                self.status = "disconnected"
+                return
+        except Exception as e:
+            self.status = "disconnected"
+            raise e
+        
+    async def extend_handshake(self):
+        import bencodepy
+        import struct
+        try:
+            if self.status != "connected":
+                raise ValueError("Peer is not connected, cannot send extended handshake.")
+            self.status = "sending extended handshake"
+            ext_handshake_dict = {
+                'm': {'ut_metadata': 1},  # Example for metadata extension
+            }
+            payload = bencodepy.encode(ext_handshake_dict)
+            reserved = b'\x14\x00'
+            msg = struct.pack('>I', len(payload)+2) +reserved + payload
+            self.writer.write(msg)
+            await self.writer.drain()
+            self.status = "extended handshake sent"
+            # Wait for response
+            # response = await asyncio.wait_for(self.reader.readexactly(68), timeout=5)
+            while True:
+                payload = None
+                header = await asyncio.wait_for(self.reader.readexactly(4), timeout=5)
+                if len(header) < 4:
+                    raise ValueError("Invalid response header length.")
+                (length, ) = struct.unpack('>I', header)
+                payload = await asyncio.wait_for(self.reader.readexactly(length), timeout=5)
+                if len(payload) < length:
+                    raise ValueError("Invalid response payload length.")
+                message_id = payload[0]
+                if message_id != 20:
+                    continue
+                extension_id = payload[1]
+                bencoded_data = payload[2:]
+                print(f"Received extended handshake response: message_id={message_id}, extension_id={extension_id}, length={length}")
+                if message_id != 20 or extension_id != 0:
+                    raise ValueError("Invalid message ID or extension ID in extended handshake response.")
+                info = bencodepy.decode(bencoded_data)
+                print("Extended handshake response:", info)
         except Exception as e:
             self.status = "disconnected"
             raise e
 
     async def connect(self):
         try:
-            print(f"Connecting to peer {self.ip}:{self.port}...")
+            # print(f"Connecting to peer {self.ip}:{self.port}...")
             self.reader, self.writer = await asyncio.wait_for(
                 asyncio.open_connection(self.ip, self.port),
-                timeout=10
+                timeout=3
             )
             self.status = "waiting for handshake"
             await self.handshake()
@@ -63,8 +145,6 @@ class Peer:
 class TorrentFile:
     def __init__(self, file_name:str = None, magnet_link:str = None):
         import os
-        import random
-        import string
         if file_name is None and magnet_link is None:
             raise ValueError("Either file_name or magnet_link must be provided.")
         if file_name is not None and magnet_link is not None:
@@ -114,9 +194,9 @@ class TorrentFile:
             "Torrent Creation Date: " + str(self.torrent_infos["creation_date"]),
             "Torrent Comment: " + str(self.torrent_infos["comment"]),
             "Torrent Created By: " + str(self.torrent_infos["created_by"]),
-            "Torrent Peers Available: " + str(self.torrent_infos["peers"]["available"]),
-            "Torrent Peers Connected: " + str(self.torrent_infos["peers"]["connected"]),
-            "Torrent Trackers Active: " + str(self.torrent_infos["trackers"]["active"]),
+            "Torrent Peers Available: " + str(len(self.torrent_infos["peers"]["available"])),
+            "Torrent Peers Connected: " + str(len(self.torrent_infos["peers"]["connected"])),
+            "Torrent Trackers Active: " + str(len(self.torrent_infos["trackers"]["active"])),
             "Torrent Trackers Next Contact: " + str(self.torrent_infos["trackers"]["next_contact"]),
         ]
         return "\n".join(infos)
@@ -279,7 +359,7 @@ class TorrentFile:
             protocol_id = 0x41727101980  # magic constant
             connect_action = 0
             connect_packet = struct.pack('!QII', protocol_id, connect_action, transaction_id)
-            sock.sendto(connect_packet, (parsed_url.hostname, parsed_url.port or 80))
+            sock.sendto(connect_packet, (parsed_url.hostname, parsed_url.port or 1337))
             connect_response, _ = sock.recvfrom(4096)
             if len(connect_response) < 16:
                 raise ValueError("Invalid connect response from UDP tracker.")
@@ -325,18 +405,11 @@ class TorrentFile:
             if transaction_id_response != transaction_id:
                 raise ValueError("Transaction ID mismatch in UDP tracker response.")
             
-            peers_count = (len(response_data) - 16) // 6
             peers = []
-            for i in range(peers_count):
-                ip_start = 16 + i * 6
-                ip_end = ip_start + 4
-                port_start = ip_end
-                port_end = port_start + 2
-                ip_bytes = response_data[ip_start:ip_end]
-                port_bytes = response_data[port_start:port_end]
-                ip_address = '.'.join(map(str, ip_bytes))
-                port_number = struct.unpack('!H', port_bytes)[0]
-                peers.append((ip_address, port_number))
+            for i in range(0, len(response_data) - 20, 6):
+                ip = '.'.join(str(b) for b in response_data[20+i:20+i+4])
+                port = struct.unpack('!H', response_data[20+i+4:20+i+6])[0]
+                peers.append((ip, port))
             return peers
         
         except Exception as e:
@@ -442,7 +515,7 @@ class TorrentFile:
                 raise ValueError("IP cannot be empty.")
             if port < 0 or port > 65535:
                 raise ValueError("Port must be between 0 and 65535.")
-            peer_conn = Peer(ip, port)
+            peer_conn = Peer(ip, port, self.torrent_infos)
             tasks.append(peer_conn.connect())
         if len(tasks) == 0:
             raise ValueError("No peers to connect to.")
@@ -451,7 +524,7 @@ class TorrentFile:
             if peer_conn.status == "connected":
                 self.torrent_infos["peers"]["connected"].append(peer_conn)
             else:
-                print(f"Failed to connect to peer: {peer_conn}")
+                self.torrent_infos["peers"]["available"].remove((peer_conn.ip, peer_conn.port))
 
     async def close_trackers(self):
         import aiohttp
@@ -469,17 +542,22 @@ async def async_main():
     if not os.path.exists(torrent_dir):
         os.makedirs(torrent_dir)
     magnet_test =  "magnet:?xt=urn:btih:A3CF436B6C4E243B4A1BCAAD0C5E3787DE814471&dn=White.Zombie.1932.%28Horror%29.1080p.BRRip.x264-Classics&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=UDP%3A%2F%2FEDDIE4.NL%3A6969%2FANNOUNCE&tr=UDP%3A%2F%2FTRACKER.COPPERSURFER.TK%3A6969%2FANNOUNCE&tr=UDP%3A%2F%2FTRACKER.LEECHERS-PARADISE.ORG%3A6969%2FANNOUNCE&tr=UDP%3A%2F%2FTRACKER.OPENTRACKR.ORG%3A1337%2FANNOUNCE&tr=UDP%3A%2F%2FTRACKER.ZER0DAY.TO%3A1337%2FANNOUNCE&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce"
-    torrent_test = "A Minecraft Movie (2025) [720p] [BluRay] [YTS.MX].torrent"
+    torrent_test = "Minecraft.torrent"
     # if not user_input:
     #     print("No input provided.")
     #     return
     try:
         # torrent = TorrentFile(magnet_link=magnet_test)
         torrent = TorrentFile(file_name=torrent_test)
-        print(torrent)
         await torrent.recover_peers()
-        print(torrent)
         await torrent.connect_peers()
+        # for peer_conn in torrent.torrent_infos["peers"]["connected"]:
+        #     try:
+        #         await peer_conn.extend_handshake()
+        #     except Exception as e:
+        #         print(f"Failed to extend handshake with {peer_conn}: {e}")
+        #         continue
+        print(torrent)
         await torrent.close()
         del torrent
 
