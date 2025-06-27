@@ -48,7 +48,6 @@ services:
       postgresql:
         condition: service_healthy
 
-
   backend-scraper:
     container_name: backend-scraper
     build: ./services/backend-scraper
@@ -76,6 +75,20 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
+
+  backend-torrent:
+    container_name: backend-torrent
+    build: ./services/backend-torrent
+    expose:
+      - 9000
+    volumes:
+      - ${HOME}/Downloads:/app/downloads
+      - ./services/backend-torrent:/app
+    env_file:
+      - .env
+    networks:
+      - hypertube-net
+
 
   postgresql:
     container_name: postgresql

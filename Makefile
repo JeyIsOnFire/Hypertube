@@ -17,9 +17,11 @@ IS_SCHOOL := $(shell \
 ifeq ($(IS_SCHOOL), true)
 	DB_VOLUME := $(HOME)/goinfre/db.volume
 	APP_VOLUME := $(HOME)/goinfre/app.volume
+	HYPER_DL := $(HOME)/goinfre/dl.volume
 else
 	DB_VOLUME := $(HOME)/42/Docker_volume/db
 	APP_VOLUME := $(HOME)/42/Docker_volume/app
+	HYPER_DL := $(HOME)/Downloads
 endif
 
 .PHONY: all fclean clean stop down re restart create-dir resume
@@ -49,11 +51,12 @@ restart:
 	@$(MAKE) start
 
 create-dir:
-	@if [ ! -d "$(DB_VOLUME)" ] || [ ! -d "$(APP_VOLUME)" ]; then \
-		mkdir -p $(DB_VOLUME) $(APP_VOLUME); \
+	@if [ ! -d "$(DB_VOLUME)" ] || [ ! -d "$(APP_VOLUME)" ] || [ ! -d "$(HYPER_DL)" ]; then \
+		mkdir -p $(DB_VOLUME) $(APP_VOLUME) $(HYPER_DL); \
 		printf "${BLUE}Bind mounts created (only if necessary):${RESET}\n";\
 		printf "  - $(DB_VOLUME)\n"; \
 		printf "  - $(APP_VOLUME)\n"; \
+		printf "  - $(HYPER_DL)\n"; \
 	fi
 
 env:
@@ -61,8 +64,6 @@ env:
 	@( grep -q '^APP_VOLUME=' .env && sed -i 's|^APP_VOLUME=.*|APP_VOLUME=$(APP_VOLUME)|' .env || echo "APP_VOLUME=$(APP_VOLUME)" >> .env )
 	@( grep -q '^DB_VOLUME=' .env && sed -i 's|^DB_VOLUME=.*|DB_VOLUME=$(DB_VOLUME)|' .env || echo "DB_VOLUME=$(DB_VOLUME)" >> .env )
 	@printf "${GREEN}.env file updated.${RESET}"\n;
-
-re: clean fclean all
 
 clean:
 	@printf "${YELLOW}Cleaning PostgreSQL DB...${RESET}\n"

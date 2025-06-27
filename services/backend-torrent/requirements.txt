@@ -1,0 +1,19 @@
+# Framework ASGI
+fastapi>=0.95.0
+uvicorn[standard]>=0.23.0
+
+# HTTP client asynchrone pour les trackers
+aiohttp>=3.8.4
+
+# Parsing Bencode
+bencodepy>=0.9.5
+
+# Chargement de variables d’environnement
+python-dotenv>=1.0.0
+
+# Optionnel : accès fichier asynchrone (si tu décides d’écrire les pièces en mode non bloquant)
+aiofiles>=23.1.0
+
+# Optionnel, pour améliorer les performances réseau d’aiohttp
+# cchardet>=2.1.7
+# aiodns>=3.0.0
