@@ -9,7 +9,7 @@ app = FastAPI()
 origins = [
     "http://localhost/",
     "http://127.0.0.1/",
-    "http://backend-movies:7000",
+    "http://backend_movies:7000",
 ]
  
 app.add_middleware(

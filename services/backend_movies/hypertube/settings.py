@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv("SECRET_KEY_BACKEND_MOVIES")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'backend-api', '82.29.169.227', 'backend-movies']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'backend_api', '82.29.169.227', 'backend_movies']
 
 # Permettre les requêtes avec les méthodes HTTP spécifiées
 CORS_ALLOW_METHODS = [
