@@ -37,17 +37,42 @@ done
 
 
 psql -h "$HOST" -U "$SUPERUSER" -d "$DB" <<-EOSQL
-GRANT role_users  TO backend_user;
+-- Révoquer d'abord tous les droits directs
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM backend_user, backend_movies;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM backend_user, backend_movies;
+REVOKE ALL ON SCHEMA public FROM backend_user, backend_movies;
+
+-- Révoquer les privilèges par défaut
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  REVOKE ALL ON TABLES FROM backend_user, backend_movies;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  REVOKE ALL ON SEQUENCES FROM backend_user, backend_movies;
+
+-- Attribuer les rôles
+GRANT role_users TO backend_user;
 GRANT role_movies TO backend_movies;
 
+-- Configurer les permissions de base des rôles
 GRANT USAGE ON SCHEMA public TO role_users, role_movies;
+
+-- Permissions spécifiques pour users
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.users_user TO role_users;
+REVOKE ALL ON TABLE public.users_user FROM role_movies;
+GRANT USAGE ON SEQUENCE public.users_user_id_seq TO role_users;
+
+-- Permissions spécifiques pour movies
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.movies_movie TO role_movies;
+REVOKE ALL ON TABLE public.movies_movie FROM role_users;
+GRANT USAGE ON SEQUENCE public.movies_movie_id_seq TO role_movies;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO role_users, role_movies;
+-- Révoquer CREATE sur le schéma public
+REVOKE CREATE ON SCHEMA public FROM PUBLIC, backend_user, backend_movies;
 
-REVOKE CREATE ON SCHEMA public FROM PUBLIC, backend_user, backend_movies;    
+-- Forcer la réinitialisation des connexions existantes
+SELECT pg_terminate_backend(pid) 
+FROM pg_stat_activity 
+WHERE usename IN ('backend_user', 'backend_movies')
+AND pid <> pg_backend_pid();
 EOSQL
 
-echo "Grants applied successfully."
+echo "Grants and revokes applied successfully."

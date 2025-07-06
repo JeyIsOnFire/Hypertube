@@ -49,26 +49,26 @@ services:
         condition: service_healthy
 
 
-  backend-scraper:
-    container_name: backend-scraper
-    build: ./services/backend-scraper
+  backend_scraper:
+    container_name: backend_scraper
+    build: ./services/backend_scraper
     expose:
       - 8000
     volumes:
-      - ./services/backend-scraper:/app
+      - ./services/backend_scraper:/app
     networks:
       - hypertube-net
     # depends_on:
     #   postgresql:
     #     condition: service_healthy
 
-  backend-movies:
-    container_name: backend-movies
-    build: ./services/backend-movies
+  backend_movies:
+    container_name: backend_movies
+    build: ./services/backend_movies
     expose:
       - 7000
     volumes:
-      - ./services/backend-movies:/app
+      - ./services/backend_movies:/app
     networks:
       - hypertube-net
     env_file:
@@ -108,7 +108,7 @@ services:
     depends_on:
       - postgresql
       - backend_user
-      - backend-movies
+      - backend_movies
     restart: "no"
 
   pgadmin:
